@@ -12,231 +12,139 @@
             --dark-red: #7a0000;
             --text-light: #f5f5f5;
             --panel-bg: #1a1a1a;
+            --gold: #d4af37;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Tajawal', sans-serif;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Tajawal', sans-serif; }
 
         body {
-            background-color: var(--bg-color);
-            color: var(--text-light);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            background-image: radial-gradient(circle at center, #1a0000 0%, #0a0a0a 100%);
+            background-color: var(--bg-color); color: var(--text-light);
+            display: flex; justify-content: center; align-items: center;
+            min-height: 100vh; background-image: radial-gradient(circle at center, #1a0000 0%, #0a0a0a 100%);
         }
 
         .container {
-            background-color: var(--panel-bg);
-            width: 90%;
-            max-width: 500px;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 0 20px rgba(201, 0, 0, 0.2);
-            border: 1px solid #330000;
-            text-align: center;
-            position: relative;
+            background-color: var(--panel-bg); width: 95%; max-width: 600px;
+            padding: 30px; border-radius: 15px; box-shadow: 0 0 30px rgba(201, 0, 0, 0.3);
+            border: 1px solid #330000; text-align: center; position: relative;
         }
 
-        h1 {
-            color: var(--primary-red);
-            font-weight: 900;
-            font-size: 2.5rem;
-            margin-bottom: 20px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        /* زر الخروج */
+        .exit-btn {
+            position: absolute; top: 15px; left: 15px; background: transparent;
+            color: #888; border: 1px solid #555; padding: 5px 15px;
+            border-radius: 5px; cursor: pointer; transition: 0.3s;
         }
+        .exit-btn:hover { background: var(--primary-red); color: white; border-color: var(--primary-red); }
 
-        .screen {
-            display: none;
-            animation: fadeIn 0.5s;
-        }
-
-        .screen.active {
-            display: block;
-        }
+        h1 { color: var(--primary-red); font-weight: 900; font-size: 2.5rem; margin-bottom: 20px; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
+        
+        .screen { display: none; animation: fadeIn 0.5s; }
+        .screen.active { display: block; }
 
         input[type="text"] {
-            width: 100%;
-            padding: 15px;
-            margin: 10px 0;
-            background-color: #000;
-            border: 1px solid var(--dark-red);
-            color: white;
-            border-radius: 8px;
-            font-size: 1.1rem;
-            outline: none;
-            transition: 0.3s;
+            width: 100%; padding: 15px; margin: 10px 0; background-color: #000;
+            border: 1px solid var(--dark-red); color: white; border-radius: 8px;
+            font-size: 1.1rem; outline: none; transition: 0.3s;
         }
-
-        input[type="text"]:focus {
-            border-color: var(--primary-red);
-            box-shadow: 0 0 10px rgba(201, 0, 0, 0.5);
-        }
+        input[type="text"]:focus { border-color: var(--primary-red); box-shadow: 0 0 10px rgba(201, 0, 0, 0.5); }
 
         button.main-btn {
-            width: 100%;
-            padding: 15px;
-            margin: 10px 0;
-            background-color: var(--dark-red);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 1.2rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.3s;
+            width: 100%; padding: 15px; margin: 10px 0; background-color: var(--dark-red);
+            color: white; border: none; border-radius: 8px; font-size: 1.2rem;
+            font-weight: bold; cursor: pointer; transition: 0.3s;
         }
+        button.main-btn:hover { background-color: var(--primary-red); transform: scale(1.02); }
+        button.main-btn:disabled { background-color: #333; cursor: not-allowed; transform: none; }
 
-        button.main-btn:hover {
-            background-color: var(--primary-red);
-            transform: scale(1.02);
-        }
-
-        .player-list {
-            list-style: none;
-            margin: 20px 0;
-            text-align: right;
-            background: #000;
-            padding: 15px;
-            border-radius: 8px;
-            border: 1px solid #333;
-        }
-
-        .player-list li {
-            padding: 10px;
-            border-bottom: 1px solid #333;
-            display: flex;
-            justify-content: space-between;
-            font-size: 1.1rem;
-        }
-
-        .player-list li:last-child {
-            border-bottom: none;
-        }
-
+        .player-list, .voting-list { list-style: none; margin: 20px 0; background: #000; padding: 15px; border-radius: 8px; border: 1px solid #333; text-align: right; }
+        .player-list li, .voting-list li { padding: 10px; border-bottom: 1px solid #333; font-size: 1.1rem; }
+        
+        /* بطاقات الأدوار بالصور */
         .role-card {
-            background: linear-gradient(45deg, #000, var(--dark-red));
-            padding: 30px;
-            border-radius: 10px;
-            margin: 20px 0;
-            font-size: 1.8rem;
-            font-weight: bold;
-            border: 2px solid var(--primary-red);
+            padding: 30px; border-radius: 10px; margin: 20px 0; font-size: 1.8rem;
+            font-weight: bold; border: 2px solid var(--primary-red);
+            background-size: cover; background-position: center; position: relative;
+            color: white; text-shadow: 2px 2px 4px #000; min-height: 150px;
+            display: flex; align-items: center; justify-content: center;
         }
+        .role-card::after { content: ''; position: absolute; top:0; left:0; right:0; bottom:0; background: rgba(0,0,0,0.6); border-radius: 8px; z-index: 1; }
+        .role-card span { position: relative; z-index: 2; }
 
-        .voting-list {
-            list-style: none;
-            margin: 20px 0;
-            padding: 0;
-        }
-
-        .voting-list li {
-            margin-bottom: 10px;
-        }
-
-        .voting-list input[type="radio"] {
-            display: none;
-        }
-
+        /* المؤقت */
+        .timer-display { font-size: 3rem; font-weight: bold; color: var(--gold); margin: 20px 0; text-shadow: 0 0 10px rgba(212, 175, 55, 0.5); }
+        
+        /* أزرار التصويت */
+        .voting-list input[type="radio"] { display: none; }
         .voting-list label {
-            display: block;
-            background-color: #000;
-            border: 2px solid #333;
-            color: white;
-            padding: 18px;
-            border-radius: 8px;
-            font-size: 1.6rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.3s;
+            display: block; background-color: #111; border: 2px solid #444; color: white;
+            padding: 15px; border-radius: 8px; font-size: 1.2rem; cursor: pointer; transition: 0.3s; text-align: center;
         }
-
         .voting-list input[type="radio"]:checked + label {
-            border-color: var(--primary-red);
-            background-color: rgba(201, 0, 0, 0.15);
-            box-shadow: 0 0 15px rgba(201, 0, 0, 0.4);
-            transform: scale(1.02);
+            border-color: var(--primary-red); background-color: rgba(201, 0, 0, 0.2); transform: scale(1.02);
         }
 
-        .notification {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: var(--primary-red);
-            color: white;
-            padding: 15px 25px;
-            border-radius: 8px;
-            font-weight: bold;
-            font-size: 1.1rem;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-            z-index: 1000;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease-in-out;
-            text-align: center;
-            min-width: 250px;
-        }
+        .notification { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background-color: var(--primary-red); color: white; padding: 15px 25px; border-radius: 8px; font-weight: bold; z-index: 1000; opacity: 0; visibility: hidden; transition: 0.3s; text-align: center; }
+        .notification.show { opacity: 1; visibility: visible; top: 40px; }
 
-        .notification.show {
-            opacity: 1;
-            visibility: visible;
-            top: 40px;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        .hidden { display: none !important; }
+        .teammates-box { background: rgba(200,0,0,0.1); border: 1px solid var(--primary-red); padding: 10px; margin-top: 10px; border-radius: 5px; font-size: 1rem; color: #ff9999;}
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
+    <audio id="sound-night" src="https://actions.google.com/sounds/v1/weather/rain_heavy_loud.ogg" preload="auto"></audio>
+    <audio id="sound-day" src="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg" preload="auto"></audio>
+    <audio id="sound-gun" src="https://actions.google.com/sounds/v1/weapons/gun_firing_and_reloading.ogg" preload="auto"></audio>
+
     <div id="game-notification" class="notification"></div>
 
     <div class="container">
+        <button class="exit-btn hidden" id="exitBtn" onclick="leaveRoom()">خروج</button>
+
         <div id="login-screen" class="screen active">
             <h1>المافيا</h1>
             <p>المدينة لا تنام...</p>
             <input type="text" id="playerName" placeholder="أدخل اسمك هنا..." autocomplete="off">
-            <button class="main-btn" onclick="createRoom()">إنشاء غرفة جديدة</button>
+            <button class="main-btn" onclick="createRoom()">إنشاء غرفة (كـ مضيف)</button>
             <div style="margin: 15px 0; color: #666;">أو</div>
-            <input type="text" id="roomCode" placeholder="رمز الغرفة (للانضمام)" autocomplete="off">
+            <input type="text" id="roomCode" placeholder="رمز الغرفة" autocomplete="off">
             <button class="main-btn" onclick="joinRoom()">الانضمام لغرفة</button>
         </div>
 
         <div id="lobby-screen" class="screen">
             <h1>غرفة الانتظار</h1>
             <p>رمز الغرفة: <strong id="displayRoomCode" style="color: var(--primary-red); font-size: 1.5rem;">---</strong></p>
+            <div style="margin-top: 15px; color: #aaa;">اللاعبين: <span id="playerCount">0</span></div>
+            <ul class="player-list" id="playersList"></ul>
             
-            <div style="margin-top: 15px; color: #aaa;">
-                اللاعبين: <span id="playerCount">0</span> / 10
-            </div>
-
-            <ul class="player-list" id="playersList">
-                </ul>
-            
-            <button class="main-btn" id="btnStartGame" onclick="startGame()">بدء اللعبة</button>
+            <button class="main-btn hidden" id="btnStartGame" onclick="startGame()">بدء اللعبة وتوزيع الأدوار</button>
+            <p id="waitingHostMsg" style="color: #aaa;">بانتظار المضيف لبدء اللعبة...</p>
         </div>
 
         <div id="game-screen" class="screen">
-            <h1 id="gamePhase" style="font-size: 2rem;">الليل يخيم على المدينة 🌙</h1>
+            <h1 id="gamePhaseTitle">...</h1>
+            <div id="gameTimer" class="timer-display hidden">00:00</div>
             
-            <div class="role-card" id="playerRole">
-                جاري جلب الدور...
+            <div class="role-card" id="playerRoleCard" style="background-image: url('https://images.unsplash.com/photo-1509248961158-e54f6934749c?auto=format&fit=crop&w=800&q=80');">
+                <span id="playerRoleText">جاري جلب الدور...</span>
             </div>
 
-            <p style="margin-bottom: 15px; font-size: 1.2rem; color: #ccc;">اختر هدفك:</p>
-            
-            <ul class="voting-list" id="votingList">
-                </ul>
+            <div id="teammatesBox" class="teammates-box hidden"></div>
+            <div id="actionArea" class="hidden">
+                <p id="actionPrompt" style="margin: 15px 0; font-size: 1.2rem;">اختر هدفك:</p>
+                <ul class="voting-list" id="targetList"></ul>
+                <button class="main-btn" id="btnSubmitAction" onclick="submitAction()">تأكيد</button>
+            </div>
 
-            <button class="main-btn" onclick="submitAction()">تأكيد الاختيار</button>
+            <button class="main-btn hidden" id="btnReadyForVote" onclick="markReady()">أنا جاهز للتصويت ✋</button>
+            
+            <div id="hostControls" class="hidden" style="margin-top: 30px; border-top: 1px solid #333; padding-top: 15px;">
+                <p style="color: #666; font-size: 0.9rem; margin-bottom: 10px;">أدوات المضيف (لتسريع اللعب):</p>
+                <button class="main-btn" style="background: #444;" onclick="hostAdvancePhase()">تخطي للمرحلة التالية ⏭️</button>
+            </div>
         </div>
     </div>
 
@@ -244,7 +152,6 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 
     <script>
-        // إعدادات فايربيس (تم وضع إعدادات مشروعك الجديد)
         const firebaseConfig = {
             apiKey: "AIzaSyCiEe9aZ9nyUfGpxSwdsNPoVS5gi670emw",
             authDomain: "mafia-game-new.firebaseapp.com",
@@ -255,171 +162,359 @@
             appId: "1:92136774152:web:c5f26e32998334ec8bcfbd"
         };
 
-        // تهيئة قاعدة البيانات
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
         // متغيرات اللعبة الأساسية
-        let currentRoom = "";
-        let myName = "";
-        const availableRoles = [
-            "مافيا 🔪", "مافيا 🔪", "طبيب 💉", "شايب 👴🏼", 
-            "مواطن 👤", "مواطن 👤", "مواطن 👤", "مواطن 👤", "مواطن 👤", "مواطن 👤"
-        ];
+        let currentRoom = "", myName = "", myRole = "", isHost = false;
+        let gameState = "", currentRound = 1, docLastProtected = "";
+        let timerInterval;
 
-        // دالة عرض الإشعارات
-        function showNotification(message) {
-            const notif = document.getElementById('game-notification');
-            notif.innerText = message;
-            notif.classList.add('show');
-            setTimeout(() => { notif.classList.remove('show'); }, 3000);
+        const rolesList = ["مافيا 🔪", "مساعد مافيا 🦹‍♂️", "طبيب 💉", "شايب 👴🏼", "مواطن 👤", "مواطن 👤", "مواطن 👤", "مواطن 👤"];
+        
+        // صور البطاقات (يمكنك تبديل الروابط لاحقاً)
+        const roleImages = {
+            "مافيا 🔪": "https://images.unsplash.com/photo-1595982855117-09d3ee321528?auto=format&fit=crop&w=800&q=80",
+            "مساعد مافيا 🦹‍♂️": "https://images.unsplash.com/photo-1605806616949-1e87b487cb2a?auto=format&fit=crop&w=800&q=80",
+            "طبيب 💉": "https://images.unsplash.com/photo-1584362917165-526a968579e8?auto=format&fit=crop&w=800&q=80",
+            "شايب 👴🏼": "https://images.unsplash.com/photo-1552308995-2baac1ad5490?auto=format&fit=crop&w=800&q=80",
+            "مواطن 👤": "https://images.unsplash.com/photo-1517673400267-0251440c45dc?auto=format&fit=crop&w=800&q=80"
+        };
+
+        // --- دوال المساعدة للواجهة ---
+        function showNotification(msg) {
+            const el = document.getElementById('game-notification');
+            el.innerText = msg; el.classList.add('show');
+            setTimeout(() => el.classList.remove('show'), 3000);
+        }
+        function showScreen(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            if(id !== 'login-screen') document.getElementById('exitBtn').classList.remove('hidden');
+        }
+        function playSound(id) {
+            const audio = document.getElementById(id);
+            if(audio) { audio.currentTime = 0; audio.play().catch(e=>console.log("الصوت مقفل من المتصفح")); }
         }
 
-        // التنقل بين الشاشات
-        function showScreen(screenId) {
-            document.querySelectorAll('.screen').forEach(screen => {
-                screen.classList.remove('active');
-            });
-            document.getElementById(screenId).classList.add('active');
+        // --- 1. الخروج من اللعبة ---
+        function leaveRoom() {
+            if(currentRoom && myName) {
+                db.ref(`rooms/${currentRoom}/players/${myName}`).remove();
+                if(isHost) db.ref(`rooms/${currentRoom}`).remove(); // إذا خرج المضيف تدمر الغرفة
+            }
+            window.location.reload();
         }
 
-        // 1. إنشاء الغرفة
+        // --- إنشاء والانضمام للغرفة ---
         function createRoom() {
             myName = document.getElementById('playerName').value.trim();
-            if (!myName) return showNotification("الرجاء إدخال اسمك أولاً!");
-
+            if (!myName) return showNotification("الرجاء إدخال اسمك");
             currentRoom = Math.floor(1000 + Math.random() * 9000).toString();
+            isHost = true;
             
-            // تسجيل بيانات الغرفة والمضيف
-            db.ref('rooms/' + currentRoom).set({
-                host: myName,
-                state: 'lobby',
-                players: {
-                    [myName]: { name: myName, role: "waiting", isAlive: true }
-                }
+            db.ref(`rooms/${currentRoom}`).set({
+                host: myName, state: 'lobby', round: 1, timerEnd: 0,
+                players: { [myName]: { name: myName, role: "waiting", isAlive: true } }
             }).then(() => {
                 document.getElementById('displayRoomCode').innerText = currentRoom;
-                showNotification("تم إنشاء الغرفة بنجاح");
-                showScreen('lobby-screen');
-                listenToRoom(); // تشغيل المستمع
+                document.getElementById('btnStartGame').classList.remove('hidden');
+                document.getElementById('waitingHostMsg').classList.add('hidden');
+                document.getElementById('hostControls').classList.remove('hidden');
+                showScreen('lobby-screen'); listenToRoom();
             });
         }
 
-        // 2. الانضمام لغرفة
         function joinRoom() {
             myName = document.getElementById('playerName').value.trim();
             currentRoom = document.getElementById('roomCode').value.trim();
-            
-            if (!myName || !currentRoom) return showNotification("الرجاء إدخال الاسم ورمز الغرفة!");
+            if (!myName || !currentRoom) return showNotification("أدخل بياناتك كاملة");
 
-            // التحقق من وجود الغرفة أولاً
-            db.ref('rooms/' + currentRoom).once('value', (snapshot) => {
-                if(snapshot.exists()) {
-                    // إضافة اللاعب للغرفة
-                    db.ref('rooms/' + currentRoom + '/players/' + myName).set({
-                        name: myName, role: "waiting", isAlive: true
-                    }).then(() => {
+            db.ref(`rooms/${currentRoom}`).once('value').then(snap => {
+                if(snap.exists() && snap.val().state === 'lobby') {
+                    db.ref(`rooms/${currentRoom}/players/${myName}`).set({ name: myName, role: "waiting", isAlive: true }).then(() => {
                         document.getElementById('displayRoomCode').innerText = currentRoom;
-                        showNotification("تم الانضمام للغرفة");
-                        showScreen('lobby-screen');
-                        listenToRoom(); // تشغيل المستمع
+                        showScreen('lobby-screen'); listenToRoom();
                     });
-                } else {
-                    showNotification("رمز الغرفة غير صحيح!");
-                }
+                } else showNotification("الغرفة غير موجودة أو اللعبة بدأت");
             });
         }
 
-        // 3. الاستماع للتحديثات في الوقت الفعلي (اللاعبين + حالة اللعبة)
+        // --- 2. إدارة حالة اللعبة ---
         function listenToRoom() {
-            // أ. الاستماع لقائمة اللاعبين
-            db.ref('rooms/' + currentRoom + '/players').on('value', (snapshot) => {
-                const playersList = document.getElementById('playersList');
-                const votingList = document.getElementById('votingList');
-                playersList.innerHTML = "";
-                votingList.innerHTML = "";
-                
+            // الاستماع للاعبين
+            db.ref(`rooms/${currentRoom}/players`).on('value', snap => {
+                const list = document.getElementById('playersList'); list.innerHTML = "";
                 let count = 0;
-                
-                snapshot.forEach(child => {
-                    const p = child.val();
-                    count++;
-                    
-                    // إضافة اللاعب في شاشة اللوبي
-                    const li = document.createElement('li');
-                    li.innerHTML = `${p.name} ${p.name === myName ? "<span>(أنت)</span>" : ""}`;
-                    playersList.appendChild(li);
-
-                    // إضافة اللاعب في شاشة التصويت (بشرط ألا يكون اللاعب نفسه)
-                    if(p.name !== myName) {
-                        const vLi = document.createElement('li');
-                        vLi.innerHTML = `
-                            <input type="radio" name="target" id="player_${p.name}" value="${p.name}">
-                            <label for="player_${p.name}">${p.name}</label>
-                        `;
-                        votingList.appendChild(vLi);
-                    }
+                snap.forEach(child => {
+                    const p = child.val(); count++;
+                    const status = p.isAlive ? "🟢" : "💀";
+                    list.innerHTML += `<li>${p.name} ${status} ${p.name === myName ? "<span>(أنت)</span>" : ""}</li>`;
+                    if(p.name === myName && p.role !== "waiting") updateMyRoleUI(p.role);
                 });
-                
                 document.getElementById('playerCount').innerText = count;
             });
 
-            // ب. الاستماع لحالة اللعبة (هل بدأت؟)
-            db.ref('rooms/' + currentRoom + '/state').on('value', (snapshot) => {
-                const state = snapshot.val();
-                if(state === 'playing') {
-                    showNotification("بدأت اللعبة!");
-                    showScreen('game-screen');
-                    
-                    // جلب وعرض الدور الخاص باللاعب من قاعدة البيانات
-                    db.ref('rooms/' + currentRoom + '/players/' + myName + '/role').once('value', (roleSnap) => {
-                        document.getElementById('playerRole').innerText = "دورك: " + roleSnap.val();
-                    });
+            // الاستماع لتغيير المراحل (الليل، النقاش، التصويت)
+            db.ref(`rooms/${currentRoom}`).on('value', snap => {
+                const roomData = snap.val();
+                if(!roomData) return leaveRoom(); // الغرفة تدمرت
+                
+                currentRound = roomData.round || 1;
+                if(roomData.state !== gameState) {
+                    gameState = roomData.state;
+                    handleStateChange(roomData);
                 }
             });
         }
 
-        // 4. بدء اللعبة وتوزيع الأدوار
+        function updateMyRoleUI(role) {
+            myRole = role;
+            document.getElementById('playerRoleText').innerText = "دورك: " + role;
+            if(roleImages[role]) document.getElementById('playerRoleCard').style.backgroundImage = `url('${roleImages[role]}')`;
+        }
+
+        // --- 3. بدء اللعبة (للمضيف فقط) ---
         function startGame() {
-            db.ref('rooms/' + currentRoom + '/players').once('value', (snapshot) => {
-                let players = [];
-                snapshot.forEach(child => players.push(child.val().name));
-
-                if(players.length < 3) {
-                    showNotification("تحتاج إلى 3 لاعبين على الأقل لبدء اللعبة!");
-                    // في وضع التجربة يمكنك إزالة السطر أدناه إذا أردت التجربة وحدك
-                    // return; 
-                }
-
-                showNotification("جاري توزيع الأدوار...");
-
-                // خلط اللاعبين لتوزيع عشوائي
-                players.sort(() => Math.random() - 0.5);
-
-                let updates = {};
-                for(let i = 0; i < players.length; i++) {
-                    let role = availableRoles[i] || "مواطن 👤";
-                    updates['rooms/' + currentRoom + '/players/' + players[i] + '/role'] = role;
-                }
+            db.ref(`rooms/${currentRoom}/players`).once('value', snap => {
+                let players = []; snap.forEach(c => players.push(c.val().name));
+                if(players.length < 3) return showNotification("نحتاج 3 لاعبين كحد أدنى");
                 
-                // تغيير حالة اللعبة لتشغيل الشاشة عند الجميع
-                updates['rooms/' + currentRoom + '/state'] = 'playing';
-
-                // رفع التحديثات لقاعدة البيانات
+                players.sort(() => Math.random() - 0.5); // خلط عشوائي
+                let updates = {};
+                players.forEach((p, i) => {
+                    updates[`rooms/${currentRoom}/players/${p}/role`] = rolesList[i] || "مواطن 👤";
+                    updates[`rooms/${currentRoom}/players/${p}/isAlive`] = true;
+                });
+                updates[`rooms/${currentRoom}/state`] = 'night';
+                updates[`rooms/${currentRoom}/round`] = 1;
                 db.ref().update(updates);
             });
         }
 
-        // 5. إرسال التصويت (سنربطها لاحقاً بقاعدة البيانات للقتل الفعلي)
-        function submitAction() {
-            const selectedPlayer = document.querySelector('input[name="target"]:checked');
-            if (!selectedPlayer) {
-                showNotification("يجب عليك اختيار لاعب أولاً!");
+        // --- 4. محرك المراحل ---
+        function handleStateChange(data) {
+            showScreen('game-screen');
+            clearInterval(timerInterval);
+            hideAllGameUI();
+
+            const me = data.players[myName];
+            if(!me.isAlive) {
+                document.getElementById('gamePhaseTitle').innerText = "أنت ميت 💀، راقب بصمت";
                 return;
             }
 
-            showNotification(`تم تأكيد اختيارك لـ: ${selectedPlayer.value}`);
-            selectedPlayer.checked = false;
+            if(gameState === 'night') {
+                playSound('sound-night');
+                document.getElementById('gamePhaseTitle').innerText = "الليل يخيم على المدينة 🌙";
+                setupNightActions(data.players);
+
+            } else if(gameState === 'discussion') {
+                playSound('sound-day');
+                document.getElementById('gamePhaseTitle').innerText = "مرحلة النقاش ☀️";
+                document.getElementById('btnReadyForVote').classList.remove('hidden');
+                startTimer(data.timerEnd, () => { if(isHost) hostSetState('voting', 60); });
+
+            } else if(gameState === 'voting') {
+                document.getElementById('gamePhaseTitle').innerText = "وقت التصويت ⚖️";
+                setupVotingActions(data.players);
+                startTimer(data.timerEnd, () => { if(isHost) processVotes(); });
+            }
+        }
+
+        function hideAllGameUI() {
+            document.getElementById('actionArea').classList.add('hidden');
+            document.getElementById('btnReadyForVote').classList.add('hidden');
+            document.getElementById('gameTimer').classList.add('hidden');
+            document.getElementById('teammatesBox').classList.add('hidden');
+        }
+
+        // --- 5. أفعال الليل (مافيا، طبيب، شايب) ---
+        function setupNightActions(players) {
+            const targetList = document.getElementById('targetList');
+            targetList.innerHTML = "";
+            let canAct = false;
+            let promptText = "";
+
+            // كشف المافيا لبعضهم
+            if(myRole.includes("مافيا")) {
+                let mafias = Object.values(players).filter(p => p.role.includes("مافيا")).map(p=>p.name).join(' و ');
+                document.getElementById('teammatesBox').innerText = "فريق المافيا: " + mafias;
+                document.getElementById('teammatesBox').classList.remove('hidden');
+            }
+
+            Object.values(players).forEach(p => {
+                if(!p.isAlive) return;
+
+                if(myRole === "مافيا 🔪" && !p.role.includes("مافيا")) {
+                    canAct = true; promptText = "اختر ضحيتك:";
+                    addTargetRadio(p.name);
+                } 
+                else if(myRole === "طبيب 💉") {
+                    // قوانين الطبيب: لا يحمي نفسه جولة 1، ولا مرتين ورا بعض
+                    let isSelf = (p.name === myName);
+                    let canProtect = true;
+                    if(isSelf && currentRound === 1) canProtect = false;
+                    if(isSelf && docLastProtected === myName) canProtect = false;
+                    
+                    if(canProtect) {
+                        canAct = true; promptText = "اختر من تحمي:";
+                        addTargetRadio(p.name, isSelf ? " (أنت)" : "");
+                    }
+                }
+                else if(myRole === "شايب 👴🏼" && p.name !== myName) {
+                    canAct = true; promptText = "اختر شخصاً لتتحرى عنه:";
+                    addTargetRadio(p.name);
+                }
+            });
+
+            if(canAct) {
+                document.getElementById('actionPrompt').innerText = promptText;
+                document.getElementById('actionArea').classList.remove('hidden');
+            } else {
+                document.getElementById('gamePhaseTitle').innerText += "\nاخلد للنوم...";
+            }
+        }
+
+        function addTargetRadio(name, extra = "") {
+            document.getElementById('targetList').innerHTML += `
+                <li><input type="radio" name="target" id="t_${name}" value="${name}"><label for="t_${name}">${name}${extra}</label></li>
+            `;
+        }
+
+        function submitAction() {
+            const selected = document.querySelector('input[name="target"]:checked');
+            if(!selected) return showNotification("اختر شخصاً أولاً");
+            
+            const target = selected.value;
+            let actionType = "";
+            
+            if(myRole === "مافيا 🔪") actionType = "kill";
+            if(myRole === "طبيب 💉") { actionType = "protect"; docLastProtected = target; }
+            
+            if(myRole === "شايب 👴🏼") {
+                // الشايب يكشف الدور فوراً محلياً
+                db.ref(`rooms/${currentRoom}/players/${target}/role`).once('value', snap => {
+                    showNotification(`🔍 اكتشفت أن ${target} هو: ${snap.val()}`);
+                    document.getElementById('actionArea').classList.add('hidden');
+                });
+            } else {
+                // إرسال الفعل للسيرفر
+                db.ref(`rooms/${currentRoom}/nightActions/${actionType}`).set(target);
+                showNotification("تم تأكيد اختيارك");
+                document.getElementById('actionArea').classList.add('hidden');
+            }
+        }
+
+        // --- 6. التصويت والنقاش ---
+        function markReady() {
+            db.ref(`rooms/${currentRoom}/readyPlayers/${myName}`).set(true);
+            document.getElementById('btnReadyForVote').disabled = true;
+            document.getElementById('btnReadyForVote').innerText = "تم التأكيد، بانتظار البقية...";
+            
+            // المضيف يفحص إذا الكل جاهز
+            if(isHost) {
+                db.ref(`rooms/${currentRoom}`).once('value', snap => {
+                    let d = snap.val();
+                    let aliveCount = Object.values(d.players).filter(p=>p.isAlive).length;
+                    let readyCount = d.readyPlayers ? Object.keys(d.readyPlayers).length : 0;
+                    if(readyCount >= aliveCount) hostSetState('voting', 60);
+                });
+            }
+        }
+
+        function setupVotingActions(players) {
+            const targetList = document.getElementById('targetList');
+            targetList.innerHTML = `<li><input type="radio" name="target" id="v_skip" value="skip" checked><label for="v_skip">تخطي التصويت (Skip)</label></li>`;
+            
+            Object.values(players).forEach(p => {
+                if(p.isAlive && p.name !== myName) {
+                    targetList.innerHTML += `<li><input type="radio" name="target" id="v_${p.name}" value="${p.name}"><label for="v_${p.name}">${p.name}</label></li>`;
+                }
+            });
+            document.getElementById('actionPrompt').innerText = "اختر من تريد إعدامه:";
+            document.getElementById('actionArea').classList.remove('hidden');
+            
+            // تغيير دالة الزر لتناسب التصويت (يسمح بتغيير الصوت طالما الوقت لم ينته)
+            document.getElementById('btnSubmitAction').onclick = () => {
+                const sel = document.querySelector('input[name="target"]:checked').value;
+                db.ref(`rooms/${currentRoom}/votes/${myName}`).set(sel);
+                showNotification("تم تسجيل تصويتك: " + (sel==='skip'?'تخطي':sel));
+            };
+        }
+
+        // --- 7. المؤقت وتحديث الوقت ---
+        function startTimer(endTimeStr, onComplete) {
+            const el = document.getElementById('gameTimer');
+            el.classList.remove('hidden');
+            const endTime = new Date(endTimeStr).getTime();
+
+            timerInterval = setInterval(() => {
+                let now = new Date().getTime();
+                let distance = endTime - now;
+                if(distance <= 0) {
+                    clearInterval(timerInterval); el.innerText = "00:00";
+                    if(onComplete) onComplete();
+                } else {
+                    let m = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                    let s = Math.floor((distance % (1000 * 60)) / 1000);
+                    el.innerText = (m < 10 ? "0"+m : m) + ":" + (s < 10 ? "0"+s : s);
+                }
+            }, 1000);
+        }
+
+        // --- 8. أدوات المضيف (السيرفر الوهمي) ---
+        function hostSetState(newState, seconds) {
+            let endTime = new Date(new Date().getTime() + seconds * 1000).toISOString();
+            let updates = { state: newState, timerEnd: endTime, readyPlayers: null };
+            if(newState === 'night') updates.round = currentRound + 1;
+            db.ref(`rooms/${currentRoom}`).update(updates);
+        }
+
+        function hostAdvancePhase() {
+            if(gameState === 'night') processNightResults();
+            else if(gameState === 'discussion') hostSetState('voting', 60);
+            else if(gameState === 'voting') processVotes();
+        }
+
+        function processNightResults() {
+            db.ref(`rooms/${currentRoom}`).once('value', snap => {
+                let d = snap.val();
+                let actions = d.nightActions || {};
+                let kill = actions.kill; let protect = actions.protect;
+                
+                // تنظيف الأفعال
+                db.ref(`rooms/${currentRoom}/nightActions`).remove();
+
+                if(kill && kill !== protect) {
+                    playSound('sound-gun');
+                    db.ref(`rooms/${currentRoom}/players/${kill}/isAlive`).set(false);
+                }
+                hostSetState('discussion', 210); // 3 دقائق ونصف = 210 ثانية
+            });
+        }
+
+        function processVotes() {
+            db.ref(`rooms/${currentRoom}`).once('value', snap => {
+                let d = snap.val();
+                let votes = d.votes || {};
+                db.ref(`rooms/${currentRoom}/votes`).remove(); // تنظيف الأصوات
+                
+                // حساب أعلى تصويت
+                let counts = {}; let maxVotes = 0; let victim = null;
+                Object.values(votes).forEach(v => {
+                    if(v !== 'skip') {
+                        counts[v] = (counts[v] || 0) + 1;
+                        if(counts[v] > maxVotes) { maxVotes = counts[v]; victim = v; }
+                    }
+                });
+
+                if(victim) {
+                    playSound('sound-gun');
+                    db.ref(`rooms/${currentRoom}/players/${victim}/isAlive`).set(false);
+                }
+                hostSetState('night', 0); // العودة لليل
+            });
         }
     </script>
 </body>
