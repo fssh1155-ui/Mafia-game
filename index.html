@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>Mafia Game</title>
+</head>
+<body>
+    <h1>مرحباً بك في لعبة المافيا</h1>
+    <button id="btnCreate">إنشاء غرفة جديدة</button>
+    <p id="status"></p>
+
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+
+    <script>
+        // إعدادات مشروعك الجديد
+        const firebaseConfig = {
+            apiKey: "AIzaSyCiEe9aZ9nyUfGpxSwdsNPoVS5gi670emw",
+            authDomain: "mafia-game-new.firebaseapp.com",
+            databaseURL: "https://mafia-game-new-default-rtdb.firebaseio.com",
+            projectId: "mafia-game-new",
+            storageBucket: "mafia-game-new.firebasestorage.app",
+            messagingSenderId: "92136774152",
+            appId: "1:92136774152:web:c5f26e32998334ec8bcfbd"
+        };
+
+        // تشغيل Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // وظيفة الزر
+        document.getElementById('btnCreate').onclick = function() {
+            document.getElementById('status').innerText = "جاري إنشاء الغرفة...";
+            
+            // إنشاء كود غرفة عشوائي
+            const roomCode = Math.floor(1000 + Math.random() * 9000);
+            
+            db.ref('rooms/' + roomCode).set({
+                status: 'waiting',
+                createdAt: Date.now()
+            })
+            .then(() => {
+                document.getElementById('status').innerText = "✅ تم إنشاء الغرفة بنجاح! كود الغرفة: " + roomCode;
+            })
+            .catch((error) => {
+                document.getElementById('status').innerText = "❌ حدث خطأ: " + error.message;
+            });
+        };
+    </script>
+</body>
+</html>
