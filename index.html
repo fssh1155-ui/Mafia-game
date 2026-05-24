@@ -116,7 +116,7 @@
 </head>
 <body>
 
-    <audio id="sound-night" src="https://actions.google.com/sounds/v1/weather/rain_heavy_loud.ogg" preload="auto"></audio>
+    <audio id="sound-night" src="https://actions.google.com/sounds/v1/weather/wind_breeze.ogg" preload="auto"></audio>
     <audio id="sound-day" src="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg" preload="auto"></audio>
     <audio id="sound-gun" src="https://actions.google.com/sounds/v1/weapons/gun_firing_and_reloading.ogg" preload="auto"></audio>
 
@@ -186,6 +186,12 @@
             </div>
 
             <button class="main-btn hidden" id="btnReadyForVote" onclick="markReady()">أنا جاهز للتصويت ✋</button>
+        </div>
+
+        <div id="end-screen" class="screen">
+            <h1 style="font-size: 3rem; margin-bottom: 10px;">نهاية اللعبة!</h1>
+            <div style="font-size: 2rem; color: var(--gold); margin: 20px 0;">الفائز: <span id="endGameWinner"></span></div>
+            <button class="main-btn hidden" id="btnRestartLobby" onclick="hostReturnToLobby()">العودة لغرفة الانتظار 🔄</button>
         </div>
     </div>
 
@@ -272,7 +278,7 @@
 
         function hostReturnToLobby() {
             closeMenu();
-            showConfirm("العودة لغرفة الانتظار 🔄", "هل تريد إنهاء اللعبة الحالية؟", () => {
+            showConfirm("العودة لغرفة الانتظار 🔄", "هل تريد إعادة الجميع لغرفة الانتظار؟", () => {
                 db.ref(`rooms/${currentRoom}/players`).once('value', snap => {
                     let updates = {};
                     snap.forEach(c => { updates[`rooms/${currentRoom}/players/${c.key}/role`] = "waiting"; updates[`rooms/${currentRoom}/players/${c.key}/isAlive`] = true; });
@@ -300,7 +306,15 @@
             document.getElementById(id).classList.add('active');
         }
 
-        function playSound(id) { const audio = document.getElementById(id); if(audio) { audio.currentTime = 0; audio.play().catch(e=>console.log("الصوت مقفل")); } }
+        function playSound(id) { 
+            const audio = document.getElementById(id); 
+            if(audio) { 
+                audio.currentTime = 0; 
+                if(id === 'sound-night') audio.volume = 0.15; // تخفيض صوت الرياح ليكون خفيف
+                else audio.volume = 1.0;
+                audio.play().catch(e=>console.log("الصوت مقفل")); 
+            } 
+        }
 
         function sanitizeName(name) { return name.trim().replace(/[.#$\[\]\/]/g, ""); }
 
@@ -368,9 +382,9 @@
         function updateMyRoleUI(role) {
             myRole = role; document.getElementById('playerRoleText').innerText = "دورك: " + role;
             if(roleImages[role]) document.getElementById('playerRoleCard').style.backgroundImage = `url('${roleImages[role]}')`;
+            else document.getElementById('playerRoleCard').style.backgroundImage = `url('${roleImages["مواطن 👤"]}')`;
         }
 
-        // توزيع الأدوار حسب القوانين الجديدة
         function getRolesList(count) {
             let roles = [];
             if (count <= 4) {
@@ -410,9 +424,22 @@
             document.getElementById('btnReadyForVote').classList.add('hidden');
             document.getElementById('teammatesBox').classList.add('hidden');
 
+            // إيقاف مستمعي الهوست الخاصة بالتخطي حتى لا تتداخل
+            if(isHost) {
+                db.ref(`rooms/${currentRoom}/readyPlayers`).off();
+                db.ref(`rooms/${currentRoom}/votes`).off();
+            }
+
             const me = data.players[myName];
             if(!me) return clearSessionAndReload();
             if(me.role && me.role !== "waiting") updateMyRoleUI(me.role);
+
+            if(gameState === 'end_game') {
+                showScreen('end-screen');
+                document.getElementById('endGameWinner').innerText = data.winner || "الجميع";
+                if(isHost) document.getElementById('btnRestartLobby').classList.remove('hidden');
+                return;
+            }
 
             if(!me.isAlive) { document.getElementById('gamePhaseTitle').innerText = "أنت ميت 💀، راقب بصمت"; return; }
 
@@ -452,12 +479,34 @@
                 const btnReady = document.getElementById('btnReadyForVote');
                 btnReady.classList.remove('hidden'); btnReady.disabled = false; btnReady.innerText = "أنا جاهز للتصويت ✋";
                 
+                if(isHost) { // مراقبة إن كان الكل جاهز للتصويت لتخطي الوقت
+                    db.ref(`rooms/${currentRoom}/readyPlayers`).on('value', snap => {
+                        let readyCount = snap.exists() ? Object.keys(snap.val()).length : 0;
+                        let aliveCount = Object.values(data.players).filter(p=>p.isAlive).length;
+                        if(readyCount >= aliveCount && aliveCount > 0) {
+                            db.ref(`rooms/${currentRoom}/readyPlayers`).off();
+                            hostSetState('voting', 60);
+                        }
+                    });
+                }
+
             } else if (gameState === 'voting') {
                 document.getElementById('gamePhaseTitle').innerText = "وقت التصويت ⚖️";
                 setupActionList(data.players, "vote", "اختر من تريد إعدامه:");
+
+                if(isHost) { // مراقبة إن كان الكل صوت لإنهاء العداد فوراً
+                    db.ref(`rooms/${currentRoom}/votes`).on('value', snap => {
+                        let votesCount = snap.exists() ? Object.keys(snap.val()).length : 0;
+                        let aliveCount = Object.values(data.players).filter(p=>p.isAlive).length;
+                        if(votesCount >= aliveCount && aliveCount > 0) {
+                            db.ref(`rooms/${currentRoom}/votes`).off();
+                            clearInterval(timerInterval); // إيقاف المؤقت فوراً
+                            processVotes();
+                        }
+                    });
+                }
             }
 
-            // تشغيل المؤقت وإدارة الانتقالات التلقائية (من قبل المضيف فقط)
             if(data.timerEnd) {
                 startTimer(data.timerEnd, () => {
                     if (isHost) hostAutoAdvance(gameState);
@@ -525,21 +574,13 @@
                 });
             }
 
-            showWaitingMsg("تم تسجيل خيارك، بانتظار انتهاء الوقت...");
+            showWaitingMsg("تم تسجيل خيارك، بانتظار البقية...");
         }
 
         function markReady() {
             db.ref(`rooms/${currentRoom}/readyPlayers/${myName}`).set(true);
             const btnReady = document.getElementById('btnReadyForVote');
             btnReady.disabled = true; btnReady.innerText = "تم التأكيد، بانتظار البقية...";
-            
-            if(isHost) {
-                db.ref(`rooms/${currentRoom}`).once('value', snap => {
-                    let d = snap.val(); let aliveCount = Object.values(d.players).filter(p=>p.isAlive).length;
-                    let readyCount = d.readyPlayers ? Object.keys(d.readyPlayers).length : 0;
-                    if(readyCount >= aliveCount) hostSetState('voting', 60);
-                });
-            }
         }
 
         function startTimer(endTimeStr, onComplete) {
@@ -581,15 +622,46 @@
             }
         }
 
+        function checkWinAndProceed(players, continueCallback) {
+            let alivePlayers = Object.values(players).filter(p => p.isAlive);
+            let townCount = 0; let mafiaCount = 0;
+            let mainMafiaAlive = false; let assistantAlive = false; let assistantKey = null;
+
+            alivePlayers.forEach(p => {
+                if(p.role === "مافيا 🔪") { mafiaCount++; mainMafiaAlive = true; }
+                else if(p.role === "مساعد مافيا 🦹‍♂️") { mafiaCount++; assistantAlive = true; assistantKey = p.name; }
+                else { townCount++; }
+            });
+
+            // ترقية المساعد إذا ماتت المافيا الأساسية
+            if (!mainMafiaAlive && assistantAlive) {
+                db.ref(`rooms/${currentRoom}/players/${assistantKey}/role`).set("مافيا 🔪");
+            }
+
+            // فحص شروط الفوز
+            if (mafiaCount === 0) {
+                db.ref(`rooms/${currentRoom}/winner`).set("المدينة (المواطنون) 👨‍🌾");
+                hostSetState('end_game', 0);
+            } else if (mafiaCount >= townCount) {
+                db.ref(`rooms/${currentRoom}/winner`).set("المافيا 🔪");
+                hostSetState('end_game', 0);
+            } else {
+                continueCallback();
+            }
+        }
+
         function processNightResults() {
             db.ref(`rooms/${currentRoom}`).once('value', snap => {
-                let actions = snap.val().nightActions || {};
+                let d = snap.val();
+                let playersObj = d.players;
+                let actions = d.nightActions || {};
                 let kill = actions.kill; let protect = actions.protect;
                 db.ref(`rooms/${currentRoom}/nightActions`).remove();
 
                 let resultMsg = "ليلة هادئة، لم تحدث محاولات اغتيال.";
                 if(kill) {
                     if(kill !== protect) {
+                        playersObj[kill].isAlive = false; // التحديث محلياً للفحص
                         db.ref(`rooms/${currentRoom}/players/${kill}/isAlive`).set(false);
                         resultMsg = `محاولة ناجحة = ${kill} =`;
                     } else {
@@ -597,17 +669,21 @@
                     }
                 }
                 
-                db.ref(`rooms/${currentRoom}`).update({
-                    state: 'night_result',
-                    lastNightResult: resultMsg,
-                    timerEnd: new Date(new Date().getTime() + 4 * 1000).toISOString()
+                checkWinAndProceed(playersObj, () => {
+                    db.ref(`rooms/${currentRoom}`).update({
+                        state: 'night_result',
+                        lastNightResult: resultMsg,
+                        timerEnd: new Date(new Date().getTime() + 4 * 1000).toISOString()
+                    });
                 });
             });
         }
 
         function processVotes() {
             db.ref(`rooms/${currentRoom}`).once('value', snap => {
-                let votes = snap.val().votes || {};
+                let d = snap.val();
+                let playersObj = d.players;
+                let votes = d.votes || {};
                 db.ref(`rooms/${currentRoom}/votes`).remove(); 
                 
                 let counts = {}; let maxVotes = 0;
@@ -623,10 +699,13 @@
                 if(potentialVictims.length === 1 && maxVotes > 0) {
                     let victim = potentialVictims[0];
                     playSound('sound-gun');
+                    playersObj[victim].isAlive = false; // التحديث محلياً للفحص
                     db.ref(`rooms/${currentRoom}/players/${victim}/isAlive`).set(false);
                 } 
-                // في حالة التعادل أو تخطي الجميع، لا يموت أحد وتبدأ الجولة التالية مباشرة
-                hostSetState('night_mafia', 10); 
+                
+                checkWinAndProceed(playersObj, () => {
+                    hostSetState('night_mafia', 10); 
+                });
             });
         }
     </script>
