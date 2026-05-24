@@ -29,7 +29,6 @@
             border: 1px solid #330000; text-align: center; position: relative;
         }
 
-        /* زر القائمة */
         .menu-btn {
             position: absolute; top: 15px; left: 15px; background: #222;
             color: #fff; border: 1px solid #444; padding: 8px 15px;
@@ -86,31 +85,18 @@
             border-color: var(--primary-red); background-color: rgba(201, 0, 0, 0.2); transform: scale(1.02);
         }
 
-        /* تصميم الإشعار (مطابق لصورة المستخدم) */
         .notification {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: #cc0000;
-            color: white;
-            padding: 15px 30px;
-            border-radius: 8px;
-            font-weight: bold;
-            font-size: 1.1rem;
-            z-index: 9999;
-            opacity: 0;
-            visibility: hidden;
-            transition: 0.3s;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-            white-space: nowrap;
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            background-color: #cc0000; color: white; padding: 15px 30px;
+            border-radius: 8px; font-weight: bold; font-size: 1.1rem;
+            z-index: 9999; opacity: 0; visibility: hidden; transition: 0.3s;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5); white-space: nowrap;
         }
         .notification.show { opacity: 1; visibility: visible; top: 30px; }
 
         .hidden { display: none !important; }
         .teammates-box { background: rgba(200,0,0,0.1); border: 1px solid var(--primary-red); padding: 10px; margin-top: 10px; border-radius: 5px; font-size: 1rem; color: #ff9999;}
         
-        /* تصميم النوافذ المنبثقة من داخل اللعبة (Modals) */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.85); z-index: 3000;
@@ -139,17 +125,13 @@
     <div id="menuModal" class="modal-overlay hidden">
         <div class="modal-box">
             <h2>⚙️ قائمة التحكم</h2>
-            
             <div id="hostMenuOptions" class="hidden">
-                <p style="color: #aaa; font-size: 0.9rem; margin-bottom: 10px;">خيارات المضيف:</p>
                 <button class="main-btn" onclick="hostReturnToLobby()">إعادة الجميع لغرفة الانتظار 🔄</button>
                 <button class="main-btn btn-danger" onclick="hostCancelGame()">إلغاء الغرفة وإنهاء اللعبة ❌</button>
             </div>
-            
             <div id="playerMenuOptions" class="hidden">
                 <button class="main-btn btn-danger" onclick="playerLeaveGame()">الخروج من اللعبة 🚪</button>
             </div>
-            
             <button class="main-btn btn-secondary" style="margin-top: 20px;" onclick="closeMenu()">إغلاق القائمة</button>
         </div>
     </div>
@@ -170,7 +152,6 @@
 
         <div id="login-screen" class="screen active">
             <h1>المافيا</h1>
-            <p>المدينة لا تنام...</p>
             <input type="text" id="playerName" placeholder="أدخل اسمك هنا..." autocomplete="off">
             <button class="main-btn" onclick="createRoom()">إنشاء غرفة (كـ مضيف)</button>
             <div style="margin: 15px 0; color: #666;">أو</div>
@@ -199,17 +180,12 @@
             <div id="teammatesBox" class="teammates-box hidden"></div>
             
             <div id="actionArea" class="hidden">
-                <p id="actionPrompt" style="margin: 15px 0; font-size: 1.2rem;">اختر هدفك:</p>
+                <p id="actionPrompt" style="margin: 15px 0; font-size: 1.2rem;"></p>
                 <ul class="voting-list" id="targetList"></ul>
                 <button class="main-btn" id="btnSubmitAction" onclick="submitAction()">تأكيد الاختيار</button>
             </div>
 
             <button class="main-btn hidden" id="btnReadyForVote" onclick="markReady()">أنا جاهز للتصويت ✋</button>
-            
-            <div id="hostControls" class="hidden" style="margin-top: 30px; border-top: 1px solid #333; padding-top: 15px;">
-                <p style="color: #666; font-size: 0.9rem; margin-bottom: 10px;">أدوات المضيف (لتسريع اللعب):</p>
-                <button class="main-btn" style="background: #444;" onclick="hostAdvancePhase()">تخطي للمرحلة التالية ⏭️</button>
-            </div>
         </div>
     </div>
 
@@ -217,7 +193,6 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 
     <script>
-        // إعدادات فايربيس
         const firebaseConfig = {
             apiKey: "AIzaSyCiEe9aZ9nyUfGpxSwdsNPoVS5gi670emw",
             authDomain: "mafia-game-new.firebaseapp.com",
@@ -234,10 +209,9 @@
         let currentRoom = "", myName = "", myRole = "", isHost = false;
         let gameState = "", currentRound = 1, docLastProtected = "";
         let timerInterval;
-        let currentPlayers = []; // مصفوفة اللاعبين الحية
+        let currentPlayers = []; 
         let confirmActionCallback = null;
-
-        const rolesList = ["مافيا 🔪", "مساعد مافيا 🦹‍♂️", "طبيب 💉", "شايب 👴🏼", "مواطن 👤", "مواطن 👤", "مواطن 👤", "مواطن 👤"];
+        let currentActionType = "";
         
         const roleImages = {
             "مافيا 🔪": "https://images.unsplash.com/photo-1595982855117-09d3ee321528?auto=format&fit=crop&w=800&q=80",
@@ -247,26 +221,18 @@
             "مواطن 👤": "https://images.unsplash.com/photo-1517673400267-0251440c45dc?auto=format&fit=crop&w=800&q=80"
         };
 
-        // --- نظام حفظ الجلسة ---
         window.onload = () => {
             let sRoom = sessionStorage.getItem('mafia_room');
             let sName = sessionStorage.getItem('mafia_name');
             let sHost = sessionStorage.getItem('mafia_host');
-            
             if(sRoom && sName) {
-                currentRoom = sRoom;
-                myName = sName;
-                isHost = (sHost === 'true');
-                
+                currentRoom = sRoom; myName = sName; isHost = (sHost === 'true');
                 document.getElementById('displayRoomCode').innerText = currentRoom;
                 document.getElementById('menuBtn').classList.remove('hidden');
-                
                 if(isHost) {
                     document.getElementById('btnStartGame').classList.remove('hidden');
                     document.getElementById('waitingHostMsg').classList.add('hidden');
-                    document.getElementById('hostControls').classList.remove('hidden');
                 }
-                
                 listenToRoom(); 
             }
         };
@@ -278,11 +244,9 @@
         }
 
         function clearSessionAndReload() {
-            sessionStorage.clear();
-            window.location.reload();
+            sessionStorage.clear(); window.location.reload();
         }
 
-        // --- أدوات القائمة ونوافذ التأكيد (البديل للـ popups) ---
         function showConfirm(title, msg, onConfirm) {
             document.getElementById('confirmTitle').innerText = title;
             document.getElementById('confirmMessage').innerText = msg;
@@ -290,53 +254,29 @@
             confirmActionCallback = onConfirm;
         }
 
-        function executeConfirm() {
-            if(confirmActionCallback) confirmActionCallback();
-            closeConfirmModal();
-        }
-
-        function closeConfirmModal() {
-            document.getElementById('confirmModal').classList.add('hidden');
-            confirmActionCallback = null;
-        }
-
+        function executeConfirm() { if(confirmActionCallback) confirmActionCallback(); closeConfirmModal(); }
+        function closeConfirmModal() { document.getElementById('confirmModal').classList.add('hidden'); confirmActionCallback = null; }
         function openMenu() {
             document.getElementById('menuModal').classList.remove('hidden');
-            if(isHost) {
-                document.getElementById('hostMenuOptions').classList.remove('hidden');
-                document.getElementById('playerMenuOptions').classList.add('hidden');
-            } else {
-                document.getElementById('hostMenuOptions').classList.add('hidden');
-                document.getElementById('playerMenuOptions').classList.remove('hidden');
-            }
+            if(isHost) { document.getElementById('hostMenuOptions').classList.remove('hidden'); document.getElementById('playerMenuOptions').classList.add('hidden'); }
+            else { document.getElementById('hostMenuOptions').classList.add('hidden'); document.getElementById('playerMenuOptions').classList.remove('hidden'); }
         }
-        
-        function closeMenu() {
-            document.getElementById('menuModal').classList.add('hidden');
-        }
+        function closeMenu() { document.getElementById('menuModal').classList.add('hidden'); }
 
         function hostCancelGame() {
             closeMenu();
-            showConfirm("إلغاء الغرفة ❌", "هل أنت متأكد من إلغاء الغرفة؟ سيتم طرد جميع اللاعبين.", () => {
+            showConfirm("إلغاء الغرفة ❌", "هل أنت متأكد من إلغاء الغرفة؟", () => {
                 db.ref(`rooms/${currentRoom}`).remove().then(() => clearSessionAndReload());
             });
         }
 
         function hostReturnToLobby() {
             closeMenu();
-            showConfirm("العودة لغرفة الانتظار 🔄", "هل تريد إنهاء اللعبة الحالية وإعادة الجميع لغرفة الانتظار لبدء جولة جديدة؟", () => {
+            showConfirm("العودة لغرفة الانتظار 🔄", "هل تريد إنهاء اللعبة الحالية؟", () => {
                 db.ref(`rooms/${currentRoom}/players`).once('value', snap => {
                     let updates = {};
-                    snap.forEach(c => {
-                        updates[`rooms/${currentRoom}/players/${c.key}/role`] = "waiting";
-                        updates[`rooms/${currentRoom}/players/${c.key}/isAlive`] = true;
-                    });
-                    updates[`rooms/${currentRoom}/state`] = 'lobby';
-                    updates[`rooms/${currentRoom}/round`] = 1;
-                    updates[`rooms/${currentRoom}/nightActions`] = null;
-                    updates[`rooms/${currentRoom}/votes`] = null;
-                    updates[`rooms/${currentRoom}/readyPlayers`] = null;
-                    
+                    snap.forEach(c => { updates[`rooms/${currentRoom}/players/${c.key}/role`] = "waiting"; updates[`rooms/${currentRoom}/players/${c.key}/isAlive`] = true; });
+                    updates[`rooms/${currentRoom}/state`] = 'lobby'; updates[`rooms/${currentRoom}/round`] = 1;
                     db.ref().update(updates);
                 });
             });
@@ -344,12 +284,11 @@
 
         function playerLeaveGame() {
             closeMenu();
-            showConfirm("الخروج من اللعبة 🚪", "هل تريد الخروج من اللعبة ومغادرة الغرفة؟", () => {
+            showConfirm("الخروج 🚪", "هل تريد الخروج من اللعبة؟", () => {
                 db.ref(`rooms/${currentRoom}/players/${myName}`).remove().then(() => clearSessionAndReload());
             });
         }
 
-        // --- الأساسيات ---
         function showNotification(msg) {
             const el = document.getElementById('game-notification');
             el.innerText = msg; el.classList.add('show');
@@ -361,23 +300,14 @@
             document.getElementById(id).classList.add('active');
         }
 
-        function playSound(id) {
-            const audio = document.getElementById(id);
-            if(audio) { audio.currentTime = 0; audio.play().catch(e=>console.log("الصوت مقفل")); }
-        }
+        function playSound(id) { const audio = document.getElementById(id); if(audio) { audio.currentTime = 0; audio.play().catch(e=>console.log("الصوت مقفل")); } }
 
-        function sanitizeName(name) {
-            return name.trim().replace(/[.#$\[\]\/]/g, "");
-        }
+        function sanitizeName(name) { return name.trim().replace(/[.#$\[\]\/]/g, ""); }
 
         function createRoom() {
-            let rawName = document.getElementById('playerName').value;
-            myName = sanitizeName(rawName);
-            
+            let rawName = document.getElementById('playerName').value; myName = sanitizeName(rawName);
             if (!myName) return showNotification("الرجاء إدخال اسم صحيح");
-            
-            currentRoom = Math.floor(1000 + Math.random() * 9000).toString();
-            isHost = true;
+            currentRoom = Math.floor(1000 + Math.random() * 9000).toString(); isHost = true;
             
             db.ref(`rooms/${currentRoom}`).set({
                 host: myName, state: 'lobby', round: 1, timerEnd: 0,
@@ -387,21 +317,14 @@
                 document.getElementById('displayRoomCode').innerText = currentRoom;
                 document.getElementById('btnStartGame').classList.remove('hidden');
                 document.getElementById('waitingHostMsg').classList.add('hidden');
-                document.getElementById('hostControls').classList.remove('hidden');
                 document.getElementById('menuBtn').classList.remove('hidden');
-                
-                showScreen('lobby-screen'); 
-                listenToRoom();
-            }).catch(error => {
-                showNotification("حدث خطأ أثناء الإنشاء، تأكد من اتصالك.");
+                showScreen('lobby-screen'); listenToRoom();
             });
         }
 
         function joinRoom() {
-            let rawName = document.getElementById('playerName').value;
-            myName = sanitizeName(rawName);
+            let rawName = document.getElementById('playerName').value; myName = sanitizeName(rawName);
             currentRoom = document.getElementById('roomCode').value.trim();
-            
             if (!myName || !currentRoom) return showNotification("أدخل بياناتك كاملة");
 
             db.ref(`rooms/${currentRoom}`).once('value').then(snap => {
@@ -410,24 +333,18 @@
                         saveSession();
                         document.getElementById('displayRoomCode').innerText = currentRoom;
                         document.getElementById('menuBtn').classList.remove('hidden');
-                        
-                        showScreen('lobby-screen'); 
-                        listenToRoom();
+                        showScreen('lobby-screen'); listenToRoom();
                     });
                 } else showNotification("الغرفة غير موجودة أو اللعبة بدأت بالفعل");
             });
         }
 
         function listenToRoom() {
-            // تحديث القائمة الحية للاعبين
             db.ref(`rooms/${currentRoom}/players`).on('value', snap => {
-                currentPlayers = []; // إعادة التعيين
-                const list = document.getElementById('playersList'); list.innerHTML = "";
+                currentPlayers = []; const list = document.getElementById('playersList'); list.innerHTML = "";
                 let count = 0;
                 snap.forEach(child => {
-                    const p = child.val(); 
-                    currentPlayers.push(p.name); // حفظ الاسم في القائمة الحية
-                    count++;
+                    const p = child.val(); currentPlayers.push(p.name); count++;
                     const status = p.isAlive ? "🟢" : "💀";
                     list.innerHTML += `<li>${p.name} ${status} ${p.name === myName ? "<span>(أنت)</span>" : ""}</li>`;
                     if(p.name === myName && p.role !== "waiting") updateMyRoleUI(p.role);
@@ -435,229 +352,203 @@
                 document.getElementById('playerCount').innerText = count;
             });
 
-            // مستمع لحالة الغرفة
             db.ref(`rooms/${currentRoom}`).on('value', snap => {
                 const roomData = snap.val();
-                
-                // إذا تم حذف الغرفة بواسطة المضيف
-                if(!roomData) {
-                    showNotification("تم إلغاء الغرفة أو إنهاء اللعبة من قبل المضيف.");
-                    setTimeout(() => clearSessionAndReload(), 3000);
-                    return;
-                }
-                
+                if(!roomData) { showNotification("تم إلغاء الغرفة."); setTimeout(() => clearSessionAndReload(), 3000); return; }
                 currentRound = roomData.round || 1;
-                
                 if(roomData.state !== gameState) {
                     gameState = roomData.state;
-                    
                     if (gameState === 'lobby') {
-                        showScreen('lobby-screen');
-                        document.getElementById('gamePhaseTitle').innerText = "...";
-                        document.getElementById('playerRoleText').innerText = "بانتظار توزيع الأدوار...";
-                        document.getElementById('playerRoleCard').style.backgroundImage = "url('https://images.unsplash.com/photo-1509248961158-e54f6934749c?auto=format&fit=crop&w=800&q=80')";
-                        myRole = "waiting"; 
-                    } else {
-                        handleStateChange(roomData);
-                    }
+                        showScreen('lobby-screen'); myRole = "waiting"; 
+                    } else handleStateChange(roomData);
                 }
             });
         }
 
         function updateMyRoleUI(role) {
-            myRole = role;
-            document.getElementById('playerRoleText').innerText = "دورك: " + role;
+            myRole = role; document.getElementById('playerRoleText').innerText = "دورك: " + role;
             if(roleImages[role]) document.getElementById('playerRoleCard').style.backgroundImage = `url('${roleImages[role]}')`;
         }
 
-        function startGame() {
-            // استخدام القائمة الحية (currentPlayers) ليحل مشكلة العدد الوهمي نهائياً
-            if (currentPlayers.length < 3) {
-                showNotification(`العدد الحالي: ${currentPlayers.length}. نحتاج 3 لاعبين كحد أدنى للبدء!`);
-                return;
+        // توزيع الأدوار حسب القوانين الجديدة
+        function getRolesList(count) {
+            let roles = [];
+            if (count <= 4) {
+                roles = ["مافيا 🔪", "طبيب 💉"];
+                while(roles.length < count) roles.push("مواطن 👤");
+            } else if (count === 5) {
+                roles = ["مافيا 🔪", "طبيب 💉", "شايب 👴🏼", "مواطن 👤", "مواطن 👤"];
+            } else {
+                roles = ["مافيا 🔪", "مساعد مافيا 🦹‍♂️", "طبيب 💉", "شايب 👴🏼"];
+                while(roles.length < count) roles.push("مواطن 👤");
             }
+            return roles;
+        }
 
-            // خلط اللاعبين بشكل عشوائي لتوزيع الأدوار
+        function startGame() {
+            if (currentPlayers.length < 3) return showNotification(`نحتاج 3 لاعبين كحد أدنى للبدء!`);
+
+            let rolesList = getRolesList(currentPlayers.length);
             let shuffledPlayers = [...currentPlayers].sort(() => Math.random() - 0.5); 
             let updates = {};
             
             shuffledPlayers.forEach((p, i) => {
-                updates[`rooms/${currentRoom}/players/${p}/role`] = rolesList[i] || "مواطن 👤";
+                updates[`rooms/${currentRoom}/players/${p}/role`] = rolesList[i];
                 updates[`rooms/${currentRoom}/players/${p}/isAlive`] = true;
             });
             
-            updates[`rooms/${currentRoom}/state`] = 'night';
+            updates[`rooms/${currentRoom}/state`] = 'night_mafia';
             updates[`rooms/${currentRoom}/round`] = 1;
-            db.ref().update(updates).catch(() => showNotification("حدث خطأ أثناء الاتصال بالخادم."));
+            updates[`rooms/${currentRoom}/timerEnd`] = new Date(new Date().getTime() + 10 * 1000).toISOString();
+            
+            db.ref().update(updates);
         }
 
         function handleStateChange(data) {
-            showScreen('game-screen');
-            clearInterval(timerInterval);
-            hideAllGameUI();
-
-            const me = data.players[myName];
-            
-            if(!me) {
-                clearSessionAndReload();
-                return;
-            }
-            
-            // إصلاح مشكلة التعليق على (جاري جلب الدور) عن طريق فرضه مباشرة من قاعدة البيانات هنا
-            if (me.role && me.role !== "waiting") {
-                updateMyRoleUI(me.role);
-            }
-
-            if(!me.isAlive) {
-                document.getElementById('gamePhaseTitle').innerText = "أنت ميت 💀، راقب بصمت";
-                return;
-            }
-
-            if(gameState === 'night') {
-                playSound('sound-night');
-                document.getElementById('gamePhaseTitle').innerText = "الليل يخيم على المدينة 🌙";
-                setupNightActions(data.players);
-
-            } else if(gameState === 'discussion') {
-                playSound('sound-day');
-                document.getElementById('gamePhaseTitle').innerText = "مرحلة النقاش ☀️";
-                
-                const btnReady = document.getElementById('btnReadyForVote');
-                btnReady.classList.remove('hidden');
-                btnReady.disabled = false;
-                btnReady.innerText = "أنا جاهز للتصويت ✋";
-                
-                startTimer(data.timerEnd, () => { if(isHost) hostSetState('voting', 60); });
-
-            } else if(gameState === 'voting') {
-                document.getElementById('gamePhaseTitle').innerText = "وقت التصويت ⚖️";
-                setupVotingActions(data.players);
-                startTimer(data.timerEnd, () => { if(isHost) processVotes(); });
-            }
-        }
-
-        function hideAllGameUI() {
+            showScreen('game-screen'); clearInterval(timerInterval);
             document.getElementById('actionArea').classList.add('hidden');
             document.getElementById('btnReadyForVote').classList.add('hidden');
-            document.getElementById('gameTimer').classList.add('hidden');
             document.getElementById('teammatesBox').classList.add('hidden');
-        }
 
-        function setupNightActions(players) {
-            const targetList = document.getElementById('targetList');
-            targetList.innerHTML = "";
-            let canAct = false;
-            let promptText = "";
+            const me = data.players[myName];
+            if(!me) return clearSessionAndReload();
+            if(me.role && me.role !== "waiting") updateMyRoleUI(me.role);
+
+            if(!me.isAlive) { document.getElementById('gamePhaseTitle').innerText = "أنت ميت 💀، راقب بصمت"; return; }
 
             if(myRole.includes("مافيا")) {
-                let mafias = Object.values(players).filter(p => p.role.includes("مافيا")).map(p=>p.name).join(' و ');
+                let mafias = Object.values(data.players).filter(p => p.role.includes("مافيا")).map(p=>p.name).join(' و ');
                 document.getElementById('teammatesBox').innerText = "فريق المافيا: " + mafias;
                 document.getElementById('teammatesBox').classList.remove('hidden');
+            }
+
+            if (gameState.startsWith('night') && gameState !== 'night_result') {
+                playSound('sound-night');
+                document.getElementById('gamePhaseTitle').innerText = "الليل يخيم على المدينة 🌙";
+            }
+
+            if (gameState === 'night_mafia') {
+                if (myRole.includes("مافيا")) setupActionList(data.players, "kill", "اختر الضحية (لديك 10 ثواني)");
+                else showWaitingMsg("المافيا تقوم بعملها... الرجاء الانتظار.");
+                
+            } else if (gameState === 'night_doctor') {
+                if (myRole === "طبيب 💉") setupActionList(data.players, "protect", "اختر من تحمي (لديك 10 ثواني)");
+                else showWaitingMsg("الطبيب يقوم بعمله... الرجاء الانتظار.");
+                
+            } else if (gameState === 'night_cop') {
+                if (myRole === "شايب 👴🏼") setupActionList(data.players, "investigate", "اختر شخصاً للتحري عنه (لديك 10 ثواني)");
+                else showWaitingMsg("الشايب يقوم بعمله... الرجاء الانتظار.");
+                
+            } else if (gameState === 'night_result') {
+                document.getElementById('gamePhaseTitle').innerText = "محاولة اغتيال من المافيا";
+                document.getElementById('actionPrompt').innerText = "";
+                document.getElementById('targetList').innerHTML = `<li style="text-align:center; font-size:1.5rem; color:var(--primary-red); font-weight:bold; border:none;">${data.lastNightResult || ""}</li>`;
+                document.getElementById('btnSubmitAction').classList.add('hidden');
+                document.getElementById('actionArea').classList.remove('hidden');
+
+            } else if (gameState === 'discussion') {
+                playSound('sound-day');
+                document.getElementById('gamePhaseTitle').innerText = "مرحلة النقاش ☀️";
+                const btnReady = document.getElementById('btnReadyForVote');
+                btnReady.classList.remove('hidden'); btnReady.disabled = false; btnReady.innerText = "أنا جاهز للتصويت ✋";
+                
+            } else if (gameState === 'voting') {
+                document.getElementById('gamePhaseTitle').innerText = "وقت التصويت ⚖️";
+                setupActionList(data.players, "vote", "اختر من تريد إعدامه:");
+            }
+
+            // تشغيل المؤقت وإدارة الانتقالات التلقائية (من قبل المضيف فقط)
+            if(data.timerEnd) {
+                startTimer(data.timerEnd, () => {
+                    if (isHost) hostAutoAdvance(gameState);
+                });
+            }
+        }
+
+        function showWaitingMsg(msg) {
+            document.getElementById('actionPrompt').innerText = msg;
+            document.getElementById('targetList').innerHTML = "";
+            document.getElementById('btnSubmitAction').classList.add('hidden');
+            document.getElementById('actionArea').classList.remove('hidden');
+        }
+
+        function setupActionList(players, actionType, promptMsg) {
+            const targetList = document.getElementById('targetList');
+            targetList.innerHTML = ""; let canAct = false;
+            currentActionType = actionType;
+
+            if (actionType === "vote") {
+                targetList.innerHTML += `<li><input type="radio" name="target" id="v_skip" value="skip" checked><label for="v_skip">تخطي التصويت (Skip)</label></li>`;
+                canAct = true;
             }
 
             Object.values(players).forEach(p => {
                 if(!p.isAlive) return;
 
-                if(myRole === "مافيا 🔪" && !p.role.includes("مافيا")) {
-                    canAct = true; promptText = "اختر ضحيتك:";
-                    addTargetRadio(p.name);
-                } 
-                else if(myRole === "طبيب 💉") {
+                if(actionType === "kill" && !p.role.includes("مافيا")) { canAct = true; addTargetRadio(p.name); }
+                else if(actionType === "protect") {
                     let isSelf = (p.name === myName);
-                    let canProtect = true;
-                    if(isSelf && currentRound === 1) canProtect = false;
-                    if(isSelf && docLastProtected === myName) canProtect = false; 
-                    
-                    if(canProtect) {
-                        canAct = true; promptText = "اختر من تحمي:";
-                        addTargetRadio(p.name, isSelf ? " (أنت)" : "");
-                    }
+                    if(!(isSelf && docLastProtected === myName)) { canAct = true; addTargetRadio(p.name, isSelf ? " (أنت)" : ""); }
                 }
-                else if(myRole === "شايب 👴🏼" && p.name !== myName) {
-                    canAct = true; promptText = "اختر شخصاً لتتحرى عنه:";
-                    addTargetRadio(p.name);
-                }
+                else if(actionType === "investigate" && p.name !== myName) { canAct = true; addTargetRadio(p.name); }
+                else if(actionType === "vote" && p.name !== myName) { canAct = true; addTargetRadio(p.name); }
             });
 
             if(canAct) {
-                document.getElementById('actionPrompt').innerText = promptText;
+                document.getElementById('actionPrompt').innerText = promptMsg;
+                document.getElementById('btnSubmitAction').classList.remove('hidden');
                 document.getElementById('actionArea').classList.remove('hidden');
-            } else {
-                document.getElementById('gamePhaseTitle').innerText += "\nاخلد للنوم...";
-            }
+            } else showWaitingMsg("لا يوجد أهداف متاحة.");
         }
 
         function addTargetRadio(name, extra = "") {
-            document.getElementById('targetList').innerHTML += `
-                <li><input type="radio" name="target" id="t_${name}" value="${name}"><label for="t_${name}">${name}${extra}</label></li>
-            `;
+            document.getElementById('targetList').innerHTML += `<li><input type="radio" name="target" id="t_${name}" value="${name}"><label for="t_${name}">${name}${extra}</label></li>`;
         }
 
         function submitAction() {
             const selected = document.querySelector('input[name="target"]:checked');
             if(!selected) return showNotification("اختر شخصاً أولاً");
-            
             const target = selected.value;
 
-            if(gameState === 'voting') {
+            if(currentActionType === "vote") {
                 db.ref(`rooms/${currentRoom}/votes/${myName}`).set(target);
-                showNotification("تم تسجيل تصويتك: " + (target === 'skip' ? 'تخطي' : target));
-                return;
+                showNotification("تم تسجيل تصويتك.");
+            } else if(currentActionType === "kill") {
+                db.ref(`rooms/${currentRoom}/nightActions/kill`).set(target);
+                showNotification("تم تحديد الضحية.");
+            } else if(currentActionType === "protect") {
+                db.ref(`rooms/${currentRoom}/nightActions/protect`).set(target);
+                docLastProtected = target; showNotification("تم تأكيد الحماية.");
+            } else if(currentActionType === "investigate") {
+                db.ref(`rooms/${currentRoom}/players/${target}/role`).once('value', snap => {
+                    showNotification(`🔍 اكتشفت أن ${target} بطاقته: ${snap.val()}`);
+                });
             }
 
-            let actionType = "";
-            if(myRole === "مافيا 🔪") actionType = "kill";
-            if(myRole === "طبيب 💉") { actionType = "protect"; docLastProtected = target; }
-            
-            if(myRole === "شايب 👴🏼") {
-                db.ref(`rooms/${currentRoom}/players/${target}/role`).once('value', snap => {
-                    showNotification(`🔍 اكتشفت أن ${target} هو: ${snap.val()}`);
-                    document.getElementById('actionArea').classList.add('hidden');
-                });
-            } else {
-                db.ref(`rooms/${currentRoom}/nightActions/${actionType}`).set(target);
-                showNotification("تم تأكيد اختيارك");
-                document.getElementById('actionArea').classList.add('hidden');
-            }
+            showWaitingMsg("تم تسجيل خيارك، بانتظار انتهاء الوقت...");
         }
 
         function markReady() {
             db.ref(`rooms/${currentRoom}/readyPlayers/${myName}`).set(true);
             const btnReady = document.getElementById('btnReadyForVote');
-            btnReady.disabled = true;
-            btnReady.innerText = "تم التأكيد، بانتظار البقية...";
+            btnReady.disabled = true; btnReady.innerText = "تم التأكيد، بانتظار البقية...";
             
             if(isHost) {
                 db.ref(`rooms/${currentRoom}`).once('value', snap => {
-                    let d = snap.val();
-                    let aliveCount = Object.values(d.players).filter(p=>p.isAlive).length;
+                    let d = snap.val(); let aliveCount = Object.values(d.players).filter(p=>p.isAlive).length;
                     let readyCount = d.readyPlayers ? Object.keys(d.readyPlayers).length : 0;
                     if(readyCount >= aliveCount) hostSetState('voting', 60);
                 });
             }
         }
 
-        function setupVotingActions(players) {
-            const targetList = document.getElementById('targetList');
-            targetList.innerHTML = `<li><input type="radio" name="target" id="v_skip" value="skip" checked><label for="v_skip">تخطي التصويت (Skip)</label></li>`;
-            
-            Object.values(players).forEach(p => {
-                if(p.isAlive && p.name !== myName) {
-                    targetList.innerHTML += `<li><input type="radio" name="target" id="v_${p.name}" value="${p.name}"><label for="v_${p.name}">${p.name}</label></li>`;
-                }
-            });
-            document.getElementById('actionPrompt').innerText = "اختر من تريد إعدامه:";
-            document.getElementById('actionArea').classList.remove('hidden');
-        }
-
         function startTimer(endTimeStr, onComplete) {
-            const el = document.getElementById('gameTimer');
-            el.classList.remove('hidden');
+            const el = document.getElementById('gameTimer'); el.classList.remove('hidden');
             const endTime = new Date(endTimeStr).getTime();
+            clearInterval(timerInterval);
 
             timerInterval = setInterval(() => {
-                let now = new Date().getTime();
-                let distance = endTime - now;
+                let now = new Date().getTime(); let distance = endTime - now;
                 if(distance <= 0) {
                     clearInterval(timerInterval); el.innerText = "00:00";
                     if(onComplete) onComplete();
@@ -670,53 +561,72 @@
         }
 
         function hostSetState(newState, seconds) {
-            let endTime = new Date(new Date().getTime() + seconds * 1000).toISOString();
-            let updates = { state: newState, timerEnd: endTime, readyPlayers: null };
-            if(newState === 'night') updates.round = currentRound + 1;
+            let updates = { 
+                state: newState, 
+                timerEnd: new Date(new Date().getTime() + seconds * 1000).toISOString(),
+                readyPlayers: null 
+            };
+            if(newState === 'night_mafia') updates.round = currentRound + 1;
             db.ref(`rooms/${currentRoom}`).update(updates);
         }
 
-        function hostAdvancePhase() {
-            if(gameState === 'night') processNightResults();
-            else if(gameState === 'discussion') hostSetState('voting', 60);
-            else if(gameState === 'voting') processVotes();
+        function hostAutoAdvance(currentState) {
+            switch(currentState) {
+                case 'night_mafia': hostSetState('night_doctor', 10); break;
+                case 'night_doctor': hostSetState('night_cop', 10); break;
+                case 'night_cop': processNightResults(); break;
+                case 'night_result': hostSetState('discussion', 180); break;
+                case 'discussion': hostSetState('voting', 60); break;
+                case 'voting': processVotes(); break;
+            }
         }
 
         function processNightResults() {
             db.ref(`rooms/${currentRoom}`).once('value', snap => {
-                let d = snap.val();
-                let actions = d.nightActions || {};
+                let actions = snap.val().nightActions || {};
                 let kill = actions.kill; let protect = actions.protect;
-                
                 db.ref(`rooms/${currentRoom}/nightActions`).remove();
 
-                if(kill && kill !== protect) {
-                    playSound('sound-gun');
-                    db.ref(`rooms/${currentRoom}/players/${kill}/isAlive`).set(false);
+                let resultMsg = "ليلة هادئة، لم تحدث محاولات اغتيال.";
+                if(kill) {
+                    if(kill !== protect) {
+                        db.ref(`rooms/${currentRoom}/players/${kill}/isAlive`).set(false);
+                        resultMsg = `محاولة ناجحة = ${kill} =`;
+                    } else {
+                        resultMsg = `محاولة فاشلة = ${kill} =`;
+                    }
                 }
-                hostSetState('discussion', 210);
+                
+                db.ref(`rooms/${currentRoom}`).update({
+                    state: 'night_result',
+                    lastNightResult: resultMsg,
+                    timerEnd: new Date(new Date().getTime() + 4 * 1000).toISOString()
+                });
             });
         }
 
         function processVotes() {
             db.ref(`rooms/${currentRoom}`).once('value', snap => {
-                let d = snap.val();
-                let votes = d.votes || {};
+                let votes = snap.val().votes || {};
                 db.ref(`rooms/${currentRoom}/votes`).remove(); 
                 
-                let counts = {}; let maxVotes = 0; let victim = null;
+                let counts = {}; let maxVotes = 0;
                 Object.values(votes).forEach(v => {
                     if(v !== 'skip') {
                         counts[v] = (counts[v] || 0) + 1;
-                        if(counts[v] > maxVotes) { maxVotes = counts[v]; victim = v; }
+                        if(counts[v] > maxVotes) maxVotes = counts[v];
                     }
                 });
 
-                if(victim) {
+                let potentialVictims = Object.keys(counts).filter(k => counts[k] === maxVotes);
+
+                if(potentialVictims.length === 1 && maxVotes > 0) {
+                    let victim = potentialVictims[0];
                     playSound('sound-gun');
                     db.ref(`rooms/${currentRoom}/players/${victim}/isAlive`).set(false);
-                }
-                hostSetState('night', 0); 
+                } 
+                // في حالة التعادل أو تخطي الجميع، لا يموت أحد وتبدأ الجولة التالية مباشرة
+                hostSetState('night_mafia', 10); 
             });
         }
     </script>
