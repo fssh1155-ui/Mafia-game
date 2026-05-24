@@ -86,13 +86,31 @@
             border-color: var(--primary-red); background-color: rgba(201, 0, 0, 0.2); transform: scale(1.02);
         }
 
-        .notification { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background-color: var(--primary-red); color: white; padding: 15px 25px; border-radius: 8px; font-weight: bold; z-index: 9999; opacity: 0; visibility: hidden; transition: 0.3s; text-align: center; }
-        .notification.show { opacity: 1; visibility: visible; top: 40px; }
+        /* تصميم الإشعار (مطابق لصورة المستخدم) */
+        .notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #cc0000;
+            color: white;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            z-index: 9999;
+            opacity: 0;
+            visibility: hidden;
+            transition: 0.3s;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            white-space: nowrap;
+        }
+        .notification.show { opacity: 1; visibility: visible; top: 30px; }
 
         .hidden { display: none !important; }
         .teammates-box { background: rgba(200,0,0,0.1); border: 1px solid var(--primary-red); padding: 10px; margin-top: 10px; border-radius: 5px; font-size: 1rem; color: #ff9999;}
         
-        /* تصميم قائمة التحكم (Modal) */
+        /* تصميم النوافذ المنبثقة من داخل اللعبة (Modals) */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.85); z-index: 3000;
@@ -101,9 +119,11 @@
         .modal-box {
             background: var(--panel-bg); padding: 30px; border-radius: 12px;
             width: 90%; max-width: 400px; border: 1px solid var(--primary-red);
-            text-align: center;
+            text-align: center; box-shadow: 0 0 20px rgba(200,0,0,0.4);
         }
         .modal-box h2 { margin-bottom: 20px; color: white; }
+        .modal-btn-container { display: flex; gap: 10px; margin-top: 20px; }
+        .modal-btn-container button { margin: 0; }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
@@ -131,6 +151,17 @@
             </div>
             
             <button class="main-btn btn-secondary" style="margin-top: 20px;" onclick="closeMenu()">إغلاق القائمة</button>
+        </div>
+    </div>
+
+    <div id="confirmModal" class="modal-overlay hidden">
+        <div class="modal-box">
+            <h2 id="confirmTitle" style="color: var(--primary-red);">تأكيد</h2>
+            <p id="confirmMessage" style="margin: 15px 0; font-size: 1.1rem; color: #ddd;">هل أنت متأكد؟</p>
+            <div class="modal-btn-container">
+                <button class="main-btn" onclick="executeConfirm()">نعم</button>
+                <button class="main-btn btn-secondary" onclick="closeConfirmModal()">إلغاء</button>
+            </div>
         </div>
     </div>
 
@@ -186,7 +217,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 
     <script>
-        // إعدادات فايربيس (تأكد من تركها كما هي الخاصة بك)
+        // إعدادات فايربيس
         const firebaseConfig = {
             apiKey: "AIzaSyCiEe9aZ9nyUfGpxSwdsNPoVS5gi670emw",
             authDomain: "mafia-game-new.firebaseapp.com",
@@ -203,6 +234,8 @@
         let currentRoom = "", myName = "", myRole = "", isHost = false;
         let gameState = "", currentRound = 1, docLastProtected = "";
         let timerInterval;
+        let currentPlayers = []; // مصفوفة اللاعبين الحية
+        let confirmActionCallback = null;
 
         const rolesList = ["مافيا 🔪", "مساعد مافيا 🦹‍♂️", "طبيب 💉", "شايب 👴🏼", "مواطن 👤", "مواطن 👤", "مواطن 👤", "مواطن 👤"];
         
@@ -234,7 +267,7 @@
                     document.getElementById('hostControls').classList.remove('hidden');
                 }
                 
-                listenToRoom(); // سيتولى توجيه اللاعب للشاشة الصحيحة بناءً على حالة القاعدة
+                listenToRoom(); 
             }
         };
 
@@ -249,7 +282,24 @@
             window.location.reload();
         }
 
-        // --- أدوات القائمة ---
+        // --- أدوات القائمة ونوافذ التأكيد (البديل للـ popups) ---
+        function showConfirm(title, msg, onConfirm) {
+            document.getElementById('confirmTitle').innerText = title;
+            document.getElementById('confirmMessage').innerText = msg;
+            document.getElementById('confirmModal').classList.remove('hidden');
+            confirmActionCallback = onConfirm;
+        }
+
+        function executeConfirm() {
+            if(confirmActionCallback) confirmActionCallback();
+            closeConfirmModal();
+        }
+
+        function closeConfirmModal() {
+            document.getElementById('confirmModal').classList.add('hidden');
+            confirmActionCallback = null;
+        }
+
         function openMenu() {
             document.getElementById('menuModal').classList.remove('hidden');
             if(isHost) {
@@ -266,13 +316,15 @@
         }
 
         function hostCancelGame() {
-            if(confirm("هل أنت متأكد من إلغاء الغرفة؟ سيتم طرد جميع اللاعبين.")) {
+            closeMenu();
+            showConfirm("إلغاء الغرفة ❌", "هل أنت متأكد من إلغاء الغرفة؟ سيتم طرد جميع اللاعبين.", () => {
                 db.ref(`rooms/${currentRoom}`).remove().then(() => clearSessionAndReload());
-            }
+            });
         }
 
         function hostReturnToLobby() {
-            if(confirm("هل تريد إنهاء اللعبة الحالية وإعادة الجميع لغرفة الانتظار؟")) {
+            closeMenu();
+            showConfirm("العودة لغرفة الانتظار 🔄", "هل تريد إنهاء اللعبة الحالية وإعادة الجميع لغرفة الانتظار لبدء جولة جديدة؟", () => {
                 db.ref(`rooms/${currentRoom}/players`).once('value', snap => {
                     let updates = {};
                     snap.forEach(c => {
@@ -287,14 +339,14 @@
                     
                     db.ref().update(updates);
                 });
-                closeMenu();
-            }
+            });
         }
 
         function playerLeaveGame() {
-            if(confirm("هل تريد الخروج من اللعبة؟")) {
+            closeMenu();
+            showConfirm("الخروج من اللعبة 🚪", "هل تريد الخروج من اللعبة ومغادرة الغرفة؟", () => {
                 db.ref(`rooms/${currentRoom}/players/${myName}`).remove().then(() => clearSessionAndReload());
-            }
+            });
         }
 
         // --- الأساسيات ---
@@ -315,7 +367,6 @@
         }
 
         function sanitizeName(name) {
-            // منع الرموز التي تسبب مشاكل في مفاتيح فايربيس
             return name.trim().replace(/[.#$\[\]\/]/g, "");
         }
 
@@ -323,7 +374,7 @@
             let rawName = document.getElementById('playerName').value;
             myName = sanitizeName(rawName);
             
-            if (!myName) return showNotification("الرجاء إدخال اسم صحيح بدون رموز غريبة");
+            if (!myName) return showNotification("الرجاء إدخال اسم صحيح");
             
             currentRoom = Math.floor(1000 + Math.random() * 9000).toString();
             isHost = true;
@@ -368,12 +419,15 @@
         }
 
         function listenToRoom() {
-            // مستمع للاعبين
+            // تحديث القائمة الحية للاعبين
             db.ref(`rooms/${currentRoom}/players`).on('value', snap => {
+                currentPlayers = []; // إعادة التعيين
                 const list = document.getElementById('playersList'); list.innerHTML = "";
                 let count = 0;
                 snap.forEach(child => {
-                    const p = child.val(); count++;
+                    const p = child.val(); 
+                    currentPlayers.push(p.name); // حفظ الاسم في القائمة الحية
+                    count++;
                     const status = p.isAlive ? "🟢" : "💀";
                     list.innerHTML += `<li>${p.name} ${status} ${p.name === myName ? "<span>(أنت)</span>" : ""}</li>`;
                     if(p.name === myName && p.role !== "waiting") updateMyRoleUI(p.role);
@@ -381,14 +435,14 @@
                 document.getElementById('playerCount').innerText = count;
             });
 
-            // مستمع لحالة الغرفة (هنا يتم اصطياد إلغاء الغرفة)
+            // مستمع لحالة الغرفة
             db.ref(`rooms/${currentRoom}`).on('value', snap => {
                 const roomData = snap.val();
                 
-                // إذا تم حذف الغرفة (بواسطة المضيف)
+                // إذا تم حذف الغرفة بواسطة المضيف
                 if(!roomData) {
-                    alert("تم إلغاء الغرفة أو إنهاء اللعبة من قبل المضيف.");
-                    clearSessionAndReload();
+                    showNotification("تم إلغاء الغرفة أو إنهاء اللعبة من قبل المضيف.");
+                    setTimeout(() => clearSessionAndReload(), 3000);
                     return;
                 }
                 
@@ -402,7 +456,7 @@
                         document.getElementById('gamePhaseTitle').innerText = "...";
                         document.getElementById('playerRoleText').innerText = "بانتظار توزيع الأدوار...";
                         document.getElementById('playerRoleCard').style.backgroundImage = "url('https://images.unsplash.com/photo-1509248961158-e54f6934749c?auto=format&fit=crop&w=800&q=80')";
-                        myRole = "waiting"; // تفريغ الدور القديم
+                        myRole = "waiting"; 
                     } else {
                         handleStateChange(roomData);
                     }
@@ -417,26 +471,24 @@
         }
 
         function startGame() {
-            db.ref(`rooms/${currentRoom}/players`).once('value', snap => {
-                let players = []; 
-                snap.forEach(c => players.push(c.val().name));
-                
-                // التحقق الصارم من عدد اللاعبين
-                if(players.length < 3) {
-                    showNotification(`العدد الحالي: ${players.length}. نحتاج 3 لاعبين كحد أدنى للبدء!`);
-                    return;
-                }
-                
-                players.sort(() => Math.random() - 0.5); 
-                let updates = {};
-                players.forEach((p, i) => {
-                    updates[`rooms/${currentRoom}/players/${p}/role`] = rolesList[i] || "مواطن 👤";
-                    updates[`rooms/${currentRoom}/players/${p}/isAlive`] = true;
-                });
-                updates[`rooms/${currentRoom}/state`] = 'night';
-                updates[`rooms/${currentRoom}/round`] = 1;
-                db.ref().update(updates);
+            // استخدام القائمة الحية (currentPlayers) ليحل مشكلة العدد الوهمي نهائياً
+            if (currentPlayers.length < 3) {
+                showNotification(`العدد الحالي: ${currentPlayers.length}. نحتاج 3 لاعبين كحد أدنى للبدء!`);
+                return;
+            }
+
+            // خلط اللاعبين بشكل عشوائي لتوزيع الأدوار
+            let shuffledPlayers = [...currentPlayers].sort(() => Math.random() - 0.5); 
+            let updates = {};
+            
+            shuffledPlayers.forEach((p, i) => {
+                updates[`rooms/${currentRoom}/players/${p}/role`] = rolesList[i] || "مواطن 👤";
+                updates[`rooms/${currentRoom}/players/${p}/isAlive`] = true;
             });
+            
+            updates[`rooms/${currentRoom}/state`] = 'night';
+            updates[`rooms/${currentRoom}/round`] = 1;
+            db.ref().update(updates).catch(() => showNotification("حدث خطأ أثناء الاتصال بالخادم."));
         }
 
         function handleStateChange(data) {
@@ -445,10 +497,15 @@
             hideAllGameUI();
 
             const me = data.players[myName];
-            // إذا كنت غير موجود في قائمة اللاعبين (تم طردك مثلاً)
+            
             if(!me) {
                 clearSessionAndReload();
                 return;
+            }
+            
+            // إصلاح مشكلة التعليق على (جاري جلب الدور) عن طريق فرضه مباشرة من قاعدة البيانات هنا
+            if (me.role && me.role !== "waiting") {
+                updateMyRoleUI(me.role);
             }
 
             if(!me.isAlive) {
