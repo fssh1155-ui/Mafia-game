@@ -34,6 +34,7 @@
             position: absolute; top: 15px; left: 15px; background: transparent;
             color: #888; border: 1px solid #555; padding: 5px 15px;
             border-radius: 5px; cursor: pointer; transition: 0.3s;
+            z-index: 10;
         }
         .exit-btn:hover { background: var(--primary-red); color: white; border-color: var(--primary-red); }
 
@@ -185,18 +186,18 @@
             el.innerText = msg; el.classList.add('show');
             setTimeout(() => el.classList.remove('show'), 3000);
         }
+        
         function showScreen(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(id).classList.add('active');
             if(id !== 'login-screen') document.getElementById('exitBtn').classList.remove('hidden');
         }
-        // 9. الأصوات
+
         function playSound(id) {
             const audio = document.getElementById(id);
             if(audio) { audio.currentTime = 0; audio.play().catch(e=>console.log("الصوت مقفل من المتصفح")); }
         }
 
-        // --- 1. قائمة الخروج ---
         function leaveRoom() {
             if(currentRoom && myName) {
                 db.ref(`rooms/${currentRoom}/players/${myName}`).remove();
@@ -219,7 +220,11 @@
                 document.getElementById('btnStartGame').classList.remove('hidden');
                 document.getElementById('waitingHostMsg').classList.add('hidden');
                 document.getElementById('hostControls').classList.remove('hidden');
-                showScreen('lobby-screen'); listenToRoom();
+                
+                showScreen('lobby-screen'); 
+                listenToRoom();
+            }).catch(error => {
+                showNotification("تأكد من تحديث قواعد Firebase (Rules) إلى true");
             });
         }
 
@@ -232,12 +237,14 @@
                 if(snap.exists() && snap.val().state === 'lobby') {
                     db.ref(`rooms/${currentRoom}/players/${myName}`).set({ name: myName, role: "waiting", isAlive: true }).then(() => {
                         document.getElementById('displayRoomCode').innerText = currentRoom;
-                        showScreen('lobby-screen'); listenToRoom();
+                        showScreen('lobby-screen'); 
+                        listenToRoom();
                     });
                 } else showNotification("الغرفة غير موجودة أو اللعبة بدأت");
             });
         }
 
+        // الإصلاح الجوهري هنا: منع التخطي لشاشة اللعب إذا كانت الحالة 'lobby'
         function listenToRoom() {
             db.ref(`rooms/${currentRoom}/players`).on('value', snap => {
                 const list = document.getElementById('playersList'); list.innerHTML = "";
@@ -256,14 +263,21 @@
                 if(!roomData) return leaveRoom();
                 
                 currentRound = roomData.round || 1;
+                
                 if(roomData.state !== gameState) {
                     gameState = roomData.state;
-                    handleStateChange(roomData);
+                    
+                    // إذا كانت الحالة غرفة انتظار، نظهر شاشة الانتظار
+                    if (gameState === 'lobby') {
+                        showScreen('lobby-screen');
+                    } else {
+                        // غير ذلك ندخل في تفاصيل اللعبة
+                        handleStateChange(roomData);
+                    }
                 }
             });
         }
 
-        // 3. ظهور الدور لكل شخص
         function updateMyRoleUI(role) {
             myRole = role;
             document.getElementById('playerRoleText').innerText = "دورك: " + role;
@@ -307,7 +321,6 @@
                 playSound('sound-day');
                 document.getElementById('gamePhaseTitle').innerText = "مرحلة النقاش ☀️";
                 
-                // إعادة ضبط زر الجاهزية
                 const btnReady = document.getElementById('btnReadyForVote');
                 btnReady.classList.remove('hidden');
                 btnReady.disabled = false;
@@ -335,7 +348,6 @@
             let canAct = false;
             let promptText = "";
 
-            // 4. المافيا ومساعده يتعرفون
             if(myRole.includes("مافيا")) {
                 let mafias = Object.values(players).filter(p => p.role.includes("مافيا")).map(p=>p.name).join(' و ');
                 document.getElementById('teammatesBox').innerText = "فريق المافيا: " + mafias;
@@ -350,11 +362,10 @@
                     addTargetRadio(p.name);
                 } 
                 else if(myRole === "طبيب 💉") {
-                    // 6. قوانين الطبيب
                     let isSelf = (p.name === myName);
                     let canProtect = true;
-                    if(isSelf && currentRound === 1) canProtect = false; // لا يحمي نفسه أول راوند
-                    if(isSelf && docLastProtected === myName) canProtect = false; // لا يحمي نفسه راوندين متتالية
+                    if(isSelf && currentRound === 1) canProtect = false;
+                    if(isSelf && docLastProtected === myName) canProtect = false; 
                     
                     if(canProtect) {
                         canAct = true; promptText = "اختر من تحمي:";
@@ -387,20 +398,17 @@
             
             const target = selected.value;
 
-            // إذا كنا في مرحلة التصويت، يحق للاعب تغيير تصويته
             if(gameState === 'voting') {
                 db.ref(`rooms/${currentRoom}/votes/${myName}`).set(target);
                 showNotification("تم تسجيل تصويتك: " + (target === 'skip' ? 'تخطي' : target));
                 return;
             }
 
-            // أفعال الليل
             let actionType = "";
             if(myRole === "مافيا 🔪") actionType = "kill";
             if(myRole === "طبيب 💉") { actionType = "protect"; docLastProtected = target; }
             
             if(myRole === "شايب 👴🏼") {
-                // 7. الشايب يكشف الدور
                 db.ref(`rooms/${currentRoom}/players/${target}/role`).once('value', snap => {
                     showNotification(`🔍 اكتشفت أن ${target} هو: ${snap.val()}`);
                     document.getElementById('actionArea').classList.add('hidden');
@@ -412,7 +420,6 @@
             }
         }
 
-        // 5. زر الجاهزية للتصويت
         function markReady() {
             db.ref(`rooms/${currentRoom}/readyPlayers/${myName}`).set(true);
             const btnReady = document.getElementById('btnReadyForVote');
@@ -424,7 +431,7 @@
                     let d = snap.val();
                     let aliveCount = Object.values(d.players).filter(p=>p.isAlive).length;
                     let readyCount = d.readyPlayers ? Object.keys(d.readyPlayers).length : 0;
-                    if(readyCount >= aliveCount) hostSetState('voting', 60); // دقيقة للتصويت
+                    if(readyCount >= aliveCount) hostSetState('voting', 60);
                 });
             }
         }
@@ -461,7 +468,6 @@
             }, 1000);
         }
 
-        // --- أدوات المضيف ---
         function hostSetState(newState, seconds) {
             let endTime = new Date(new Date().getTime() + seconds * 1000).toISOString();
             let updates = { state: newState, timerEnd: endTime, readyPlayers: null };
@@ -487,7 +493,7 @@
                     playSound('sound-gun');
                     db.ref(`rooms/${currentRoom}/players/${kill}/isAlive`).set(false);
                 }
-                hostSetState('discussion', 210); // 3 دقائق ونصف
+                hostSetState('discussion', 210);
             });
         }
 
