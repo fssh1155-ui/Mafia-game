@@ -29,14 +29,14 @@
             border: 1px solid #330000; text-align: center; position: relative;
         }
 
-        /* زر الخروج */
-        .exit-btn {
-            position: absolute; top: 15px; left: 15px; background: transparent;
-            color: #888; border: 1px solid #555; padding: 5px 15px;
+        /* زر القائمة */
+        .menu-btn {
+            position: absolute; top: 15px; left: 15px; background: #222;
+            color: #fff; border: 1px solid #444; padding: 8px 15px;
             border-radius: 5px; cursor: pointer; transition: 0.3s;
-            z-index: 10;
+            z-index: 10; font-weight: bold;
         }
-        .exit-btn:hover { background: var(--primary-red); color: white; border-color: var(--primary-red); }
+        .menu-btn:hover { background: var(--primary-red); border-color: var(--primary-red); }
 
         h1 { color: var(--primary-red); font-weight: 900; font-size: 2.5rem; margin-bottom: 20px; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
         
@@ -57,11 +57,14 @@
         }
         button.main-btn:hover:not(:disabled) { background-color: var(--primary-red); transform: scale(1.02); }
         button.main-btn:disabled { background-color: #333; color: #888; cursor: not-allowed; transform: none; }
+        
+        button.btn-danger { background-color: #990000; border: 1px solid #ff3333; }
+        button.btn-danger:hover { background-color: #ff0000; }
+        button.btn-secondary { background-color: #444; }
 
         .player-list, .voting-list { list-style: none; margin: 20px 0; background: #000; padding: 15px; border-radius: 8px; border: 1px solid #333; text-align: right; }
         .player-list li, .voting-list li { padding: 10px; border-bottom: 1px solid #333; font-size: 1.1rem; }
         
-        /* بطاقات الأدوار بالصور */
         .role-card {
             padding: 30px; border-radius: 10px; margin: 20px 0; font-size: 1.8rem;
             font-weight: bold; border: 2px solid var(--primary-red);
@@ -72,10 +75,8 @@
         .role-card::after { content: ''; position: absolute; top:0; left:0; right:0; bottom:0; background: rgba(0,0,0,0.6); border-radius: 8px; z-index: 1; }
         .role-card span { position: relative; z-index: 2; }
 
-        /* المؤقت */
         .timer-display { font-size: 3rem; font-weight: bold; color: var(--gold); margin: 20px 0; text-shadow: 0 0 10px rgba(212, 175, 55, 0.5); }
         
-        /* أزرار التصويت */
         .voting-list input[type="radio"] { display: none; }
         .voting-list label {
             display: block; background-color: #111; border: 2px solid #444; color: white;
@@ -85,12 +86,25 @@
             border-color: var(--primary-red); background-color: rgba(201, 0, 0, 0.2); transform: scale(1.02);
         }
 
-        .notification { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background-color: var(--primary-red); color: white; padding: 15px 25px; border-radius: 8px; font-weight: bold; z-index: 1000; opacity: 0; visibility: hidden; transition: 0.3s; text-align: center; }
+        .notification { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background-color: var(--primary-red); color: white; padding: 15px 25px; border-radius: 8px; font-weight: bold; z-index: 9999; opacity: 0; visibility: hidden; transition: 0.3s; text-align: center; }
         .notification.show { opacity: 1; visibility: visible; top: 40px; }
 
         .hidden { display: none !important; }
         .teammates-box { background: rgba(200,0,0,0.1); border: 1px solid var(--primary-red); padding: 10px; margin-top: 10px; border-radius: 5px; font-size: 1rem; color: #ff9999;}
         
+        /* تصميم قائمة التحكم (Modal) */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85); z-index: 3000;
+            display: flex; justify-content: center; align-items: center;
+        }
+        .modal-box {
+            background: var(--panel-bg); padding: 30px; border-radius: 12px;
+            width: 90%; max-width: 400px; border: 1px solid var(--primary-red);
+            text-align: center;
+        }
+        .modal-box h2 { margin-bottom: 20px; color: white; }
+
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
@@ -102,8 +116,26 @@
 
     <div id="game-notification" class="notification"></div>
 
+    <div id="menuModal" class="modal-overlay hidden">
+        <div class="modal-box">
+            <h2>⚙️ قائمة التحكم</h2>
+            
+            <div id="hostMenuOptions" class="hidden">
+                <p style="color: #aaa; font-size: 0.9rem; margin-bottom: 10px;">خيارات المضيف:</p>
+                <button class="main-btn" onclick="hostReturnToLobby()">إعادة الجميع لغرفة الانتظار 🔄</button>
+                <button class="main-btn btn-danger" onclick="hostCancelGame()">إلغاء الغرفة وإنهاء اللعبة ❌</button>
+            </div>
+            
+            <div id="playerMenuOptions" class="hidden">
+                <button class="main-btn btn-danger" onclick="playerLeaveGame()">الخروج من اللعبة 🚪</button>
+            </div>
+            
+            <button class="main-btn btn-secondary" style="margin-top: 20px;" onclick="closeMenu()">إغلاق القائمة</button>
+        </div>
+    </div>
+
     <div class="container">
-        <button class="exit-btn hidden" id="exitBtn" onclick="leaveRoom()">خروج 🚪</button>
+        <button class="menu-btn hidden" id="menuBtn" onclick="openMenu()">⚙️ القائمة</button>
 
         <div id="login-screen" class="screen active">
             <h1>المافيا</h1>
@@ -154,6 +186,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 
     <script>
+        // إعدادات فايربيس (تأكد من تركها كما هي الخاصة بك)
         const firebaseConfig = {
             apiKey: "AIzaSyCiEe9aZ9nyUfGpxSwdsNPoVS5gi670emw",
             authDomain: "mafia-game-new.firebaseapp.com",
@@ -181,34 +214,117 @@
             "مواطن 👤": "https://images.unsplash.com/photo-1517673400267-0251440c45dc?auto=format&fit=crop&w=800&q=80"
         };
 
+        // --- نظام حفظ الجلسة ---
+        window.onload = () => {
+            let sRoom = sessionStorage.getItem('mafia_room');
+            let sName = sessionStorage.getItem('mafia_name');
+            let sHost = sessionStorage.getItem('mafia_host');
+            
+            if(sRoom && sName) {
+                currentRoom = sRoom;
+                myName = sName;
+                isHost = (sHost === 'true');
+                
+                document.getElementById('displayRoomCode').innerText = currentRoom;
+                document.getElementById('menuBtn').classList.remove('hidden');
+                
+                if(isHost) {
+                    document.getElementById('btnStartGame').classList.remove('hidden');
+                    document.getElementById('waitingHostMsg').classList.add('hidden');
+                    document.getElementById('hostControls').classList.remove('hidden');
+                }
+                
+                listenToRoom(); // سيتولى توجيه اللاعب للشاشة الصحيحة بناءً على حالة القاعدة
+            }
+        };
+
+        function saveSession() {
+            sessionStorage.setItem('mafia_room', currentRoom);
+            sessionStorage.setItem('mafia_name', myName);
+            sessionStorage.setItem('mafia_host', isHost);
+        }
+
+        function clearSessionAndReload() {
+            sessionStorage.clear();
+            window.location.reload();
+        }
+
+        // --- أدوات القائمة ---
+        function openMenu() {
+            document.getElementById('menuModal').classList.remove('hidden');
+            if(isHost) {
+                document.getElementById('hostMenuOptions').classList.remove('hidden');
+                document.getElementById('playerMenuOptions').classList.add('hidden');
+            } else {
+                document.getElementById('hostMenuOptions').classList.add('hidden');
+                document.getElementById('playerMenuOptions').classList.remove('hidden');
+            }
+        }
+        
+        function closeMenu() {
+            document.getElementById('menuModal').classList.add('hidden');
+        }
+
+        function hostCancelGame() {
+            if(confirm("هل أنت متأكد من إلغاء الغرفة؟ سيتم طرد جميع اللاعبين.")) {
+                db.ref(`rooms/${currentRoom}`).remove().then(() => clearSessionAndReload());
+            }
+        }
+
+        function hostReturnToLobby() {
+            if(confirm("هل تريد إنهاء اللعبة الحالية وإعادة الجميع لغرفة الانتظار؟")) {
+                db.ref(`rooms/${currentRoom}/players`).once('value', snap => {
+                    let updates = {};
+                    snap.forEach(c => {
+                        updates[`rooms/${currentRoom}/players/${c.key}/role`] = "waiting";
+                        updates[`rooms/${currentRoom}/players/${c.key}/isAlive`] = true;
+                    });
+                    updates[`rooms/${currentRoom}/state`] = 'lobby';
+                    updates[`rooms/${currentRoom}/round`] = 1;
+                    updates[`rooms/${currentRoom}/nightActions`] = null;
+                    updates[`rooms/${currentRoom}/votes`] = null;
+                    updates[`rooms/${currentRoom}/readyPlayers`] = null;
+                    
+                    db.ref().update(updates);
+                });
+                closeMenu();
+            }
+        }
+
+        function playerLeaveGame() {
+            if(confirm("هل تريد الخروج من اللعبة؟")) {
+                db.ref(`rooms/${currentRoom}/players/${myName}`).remove().then(() => clearSessionAndReload());
+            }
+        }
+
+        // --- الأساسيات ---
         function showNotification(msg) {
             const el = document.getElementById('game-notification');
             el.innerText = msg; el.classList.add('show');
-            setTimeout(() => el.classList.remove('show'), 3000);
+            setTimeout(() => el.classList.remove('show'), 3500);
         }
         
         function showScreen(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(id).classList.add('active');
-            if(id !== 'login-screen') document.getElementById('exitBtn').classList.remove('hidden');
         }
 
         function playSound(id) {
             const audio = document.getElementById(id);
-            if(audio) { audio.currentTime = 0; audio.play().catch(e=>console.log("الصوت مقفل من المتصفح")); }
+            if(audio) { audio.currentTime = 0; audio.play().catch(e=>console.log("الصوت مقفل")); }
         }
 
-        function leaveRoom() {
-            if(currentRoom && myName) {
-                db.ref(`rooms/${currentRoom}/players/${myName}`).remove();
-                if(isHost) db.ref(`rooms/${currentRoom}`).remove();
-            }
-            window.location.reload();
+        function sanitizeName(name) {
+            // منع الرموز التي تسبب مشاكل في مفاتيح فايربيس
+            return name.trim().replace(/[.#$\[\]\/]/g, "");
         }
 
         function createRoom() {
-            myName = document.getElementById('playerName').value.trim();
-            if (!myName) return showNotification("الرجاء إدخال اسمك");
+            let rawName = document.getElementById('playerName').value;
+            myName = sanitizeName(rawName);
+            
+            if (!myName) return showNotification("الرجاء إدخال اسم صحيح بدون رموز غريبة");
+            
             currentRoom = Math.floor(1000 + Math.random() * 9000).toString();
             isHost = true;
             
@@ -216,36 +332,43 @@
                 host: myName, state: 'lobby', round: 1, timerEnd: 0,
                 players: { [myName]: { name: myName, role: "waiting", isAlive: true } }
             }).then(() => {
+                saveSession();
                 document.getElementById('displayRoomCode').innerText = currentRoom;
                 document.getElementById('btnStartGame').classList.remove('hidden');
                 document.getElementById('waitingHostMsg').classList.add('hidden');
                 document.getElementById('hostControls').classList.remove('hidden');
+                document.getElementById('menuBtn').classList.remove('hidden');
                 
                 showScreen('lobby-screen'); 
                 listenToRoom();
             }).catch(error => {
-                showNotification("تأكد من تحديث قواعد Firebase (Rules) إلى true");
+                showNotification("حدث خطأ أثناء الإنشاء، تأكد من اتصالك.");
             });
         }
 
         function joinRoom() {
-            myName = document.getElementById('playerName').value.trim();
+            let rawName = document.getElementById('playerName').value;
+            myName = sanitizeName(rawName);
             currentRoom = document.getElementById('roomCode').value.trim();
+            
             if (!myName || !currentRoom) return showNotification("أدخل بياناتك كاملة");
 
             db.ref(`rooms/${currentRoom}`).once('value').then(snap => {
                 if(snap.exists() && snap.val().state === 'lobby') {
                     db.ref(`rooms/${currentRoom}/players/${myName}`).set({ name: myName, role: "waiting", isAlive: true }).then(() => {
+                        saveSession();
                         document.getElementById('displayRoomCode').innerText = currentRoom;
+                        document.getElementById('menuBtn').classList.remove('hidden');
+                        
                         showScreen('lobby-screen'); 
                         listenToRoom();
                     });
-                } else showNotification("الغرفة غير موجودة أو اللعبة بدأت");
+                } else showNotification("الغرفة غير موجودة أو اللعبة بدأت بالفعل");
             });
         }
 
-        // الإصلاح الجوهري هنا: منع التخطي لشاشة اللعب إذا كانت الحالة 'lobby'
         function listenToRoom() {
+            // مستمع للاعبين
             db.ref(`rooms/${currentRoom}/players`).on('value', snap => {
                 const list = document.getElementById('playersList'); list.innerHTML = "";
                 let count = 0;
@@ -258,20 +381,29 @@
                 document.getElementById('playerCount').innerText = count;
             });
 
+            // مستمع لحالة الغرفة (هنا يتم اصطياد إلغاء الغرفة)
             db.ref(`rooms/${currentRoom}`).on('value', snap => {
                 const roomData = snap.val();
-                if(!roomData) return leaveRoom();
+                
+                // إذا تم حذف الغرفة (بواسطة المضيف)
+                if(!roomData) {
+                    alert("تم إلغاء الغرفة أو إنهاء اللعبة من قبل المضيف.");
+                    clearSessionAndReload();
+                    return;
+                }
                 
                 currentRound = roomData.round || 1;
                 
                 if(roomData.state !== gameState) {
                     gameState = roomData.state;
                     
-                    // إذا كانت الحالة غرفة انتظار، نظهر شاشة الانتظار
                     if (gameState === 'lobby') {
                         showScreen('lobby-screen');
+                        document.getElementById('gamePhaseTitle').innerText = "...";
+                        document.getElementById('playerRoleText').innerText = "بانتظار توزيع الأدوار...";
+                        document.getElementById('playerRoleCard').style.backgroundImage = "url('https://images.unsplash.com/photo-1509248961158-e54f6934749c?auto=format&fit=crop&w=800&q=80')";
+                        myRole = "waiting"; // تفريغ الدور القديم
                     } else {
-                        // غير ذلك ندخل في تفاصيل اللعبة
                         handleStateChange(roomData);
                     }
                 }
@@ -286,8 +418,14 @@
 
         function startGame() {
             db.ref(`rooms/${currentRoom}/players`).once('value', snap => {
-                let players = []; snap.forEach(c => players.push(c.val().name));
-                if(players.length < 3) return showNotification("نحتاج 3 لاعبين كحد أدنى");
+                let players = []; 
+                snap.forEach(c => players.push(c.val().name));
+                
+                // التحقق الصارم من عدد اللاعبين
+                if(players.length < 3) {
+                    showNotification(`العدد الحالي: ${players.length}. نحتاج 3 لاعبين كحد أدنى للبدء!`);
+                    return;
+                }
                 
                 players.sort(() => Math.random() - 0.5); 
                 let updates = {};
@@ -307,6 +445,12 @@
             hideAllGameUI();
 
             const me = data.players[myName];
+            // إذا كنت غير موجود في قائمة اللاعبين (تم طردك مثلاً)
+            if(!me) {
+                clearSessionAndReload();
+                return;
+            }
+
             if(!me.isAlive) {
                 document.getElementById('gamePhaseTitle').innerText = "أنت ميت 💀، راقب بصمت";
                 return;
