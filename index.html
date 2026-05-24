@@ -390,7 +390,6 @@
                     const deadClass = p.isAlive ? "" : "class='dead'";
                     list.innerHTML += `<li ${deadClass}>${p.name} ${status} ${p.name === myName ? "<span>(أنت)</span>" : ""}</li>`;
                     if(p.name === myName) {
-                        amIAlive = p.isAlive;
                         if(p.role !== "waiting") updateMyRoleUI(p.role);
                     }
                 });
@@ -449,6 +448,7 @@
             db.ref().update(updates);
         }
 
+        // تم تحديث هذه الدالة بالكامل لحل مشكلة تعليق المضيف الميت
         function handleStateChange(data) {
             showScreen('game-screen'); clearInterval(timerInterval);
             document.getElementById('actionArea').classList.add('hidden');
@@ -471,7 +471,8 @@
                 return;
             }
 
-            if(!me.isAlive) { document.getElementById('gamePhaseTitle').innerText = "أنت ميت 💀، راقب بصمت"; return; }
+            // تحديث حالة اللاعب
+            amIAlive = me.isAlive;
 
             if(myRole.includes("مافيا")) {
                 let mafias = Object.values(data.players).filter(p => p.role.includes("مافيا") && p.isAlive).map(p=>p.name).join(' و ');
@@ -481,22 +482,29 @@
 
             if (gameState.startsWith('night') && gameState !== 'night_result') {
                 playSound('sound-night');
-                document.getElementById('gamePhaseTitle').innerText = "الليل يخيم على المدينة 🌙";
+                document.getElementById('gamePhaseTitle').innerText = amIAlive ? "الليل يخيم على المدينة 🌙" : "الليل يخيم (أنت ميت 💀)";
             }
 
-            if (gameState === 'night_mafia') {
-                if (myRole.includes("مافيا")) setupActionList(data.players, "kill", "اختر الضحية (لديك 10 ثواني)");
-                else showWaitingMsg("المافيا تقوم بعملها... الرجاء الانتظار.");
+            // إذا كان اللاعب ميتاً يعرض رسالة الانتظار فوراً، وإلا ينفذ مهامه
+            if (!amIAlive && gameState !== 'night_result') {
+                showWaitingMsg("أنت ميت 💀، راقب بصمت...");
+            } else {
+                if (gameState === 'night_mafia') {
+                    if (myRole.includes("مافيا")) setupActionList(data.players, "kill", "اختر الضحية (لديك 10 ثواني)");
+                    else showWaitingMsg("المافيا تقوم بعملها... الرجاء الانتظار.");
+                    
+                } else if (gameState === 'night_doctor') {
+                    if (myRole === "طبيب 💉") setupActionList(data.players, "protect", "اختر من تحمي (لديك 10 ثواني)");
+                    else showWaitingMsg("الطبيب يقوم بعمله... الرجاء الانتظار.");
+                    
+                } else if (gameState === 'night_cop') {
+                    if (myRole === "شايب 👴🏼") setupActionList(data.players, "investigate", "اختر شخصاً للتحري عنه (لديك 10 ثواني)");
+                    else showWaitingMsg("الشايب يقوم بعمله... الرجاء الانتظار.");
+                }
+            }
                 
-            } else if (gameState === 'night_doctor') {
-                if (myRole === "طبيب 💉") setupActionList(data.players, "protect", "اختر من تحمي (لديك 10 ثواني)");
-                else showWaitingMsg("الطبيب يقوم بعمله... الرجاء الانتظار.");
-                
-            } else if (gameState === 'night_cop') {
-                if (myRole === "شايب 👴🏼") setupActionList(data.players, "investigate", "اختر شخصاً للتحري عنه (لديك 10 ثواني)");
-                else showWaitingMsg("الشايب يقوم بعمله... الرجاء الانتظار.");
-                
-            } else if (gameState === 'night_result') {
+            // شاشات يراها الجميع (أموات وأحياء)
+            if (gameState === 'night_result') {
                 document.getElementById('gamePhaseTitle').innerText = "محاولة اغتيال من المافيا";
                 document.getElementById('actionPrompt').innerText = "";
                 document.getElementById('targetList').innerHTML = `<li style="text-align:center; font-size:1.5rem; color:var(--primary-red); font-weight:bold; border:none;">${data.lastNightResult || ""}</li>`;
@@ -504,11 +512,15 @@
                 document.getElementById('actionArea').classList.remove('hidden');
 
             } else if (gameState === 'discussion') {
-                playSound('sound-day');
-                document.getElementById('gamePhaseTitle').innerText = "مرحلة النقاش ☀️";
-                const btnReady = document.getElementById('btnReadyForVote');
-                btnReady.classList.remove('hidden'); btnReady.disabled = false; btnReady.innerText = "أنا جاهز للتصويت ✋";
+                if(amIAlive) playSound('sound-day');
+                document.getElementById('gamePhaseTitle').innerText = amIAlive ? "مرحلة النقاش ☀️" : "مرحلة النقاش (أنت ميت 💀)";
                 
+                if(amIAlive) {
+                    const btnReady = document.getElementById('btnReadyForVote');
+                    btnReady.classList.remove('hidden'); btnReady.disabled = false; btnReady.innerText = "أنا جاهز للتصويت ✋";
+                }
+                
+                // المضيف (حتى لو ميت) يستمر في مراقبة الجاهزية لنقل اللعبة للمرحلة التالية
                 if(isHost) {
                     db.ref(`rooms/${currentRoom}/readyPlayers`).on('value', snap => {
                         let readyCount = snap.exists() ? Object.keys(snap.val()).length : 0;
@@ -521,9 +533,13 @@
                 }
 
             } else if (gameState === 'voting') {
-                document.getElementById('gamePhaseTitle').innerText = "وقت التصويت ⚖️";
-                setupActionList(data.players, "vote", "اختر من تريد إعدامه:");
+                document.getElementById('gamePhaseTitle').innerText = amIAlive ? "وقت التصويت ⚖️" : "وقت التصويت (أنت ميت 💀)";
+                
+                if(amIAlive) {
+                    setupActionList(data.players, "vote", "اختر من تريد إعدامه:");
+                }
 
+                // المضيف (حتى لو ميت) يستمر في مراقبة الأصوات 
                 if(isHost) { 
                     db.ref(`rooms/${currentRoom}/votes`).on('value', snap => {
                         let votesCount = snap.exists() ? Object.keys(snap.val()).length : 0;
@@ -537,6 +553,7 @@
                 }
             }
 
+            // المؤقت يعمل للجميع بشكل دائم (والمضيف يتقدم تلقائياً عند انتهائه)
             if(data.timerEnd) {
                 startTimer(data.timerEnd, () => {
                     if (isHost) hostAutoAdvance(gameState);
